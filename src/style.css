@@ -1,0 +1,69 @@
+:root {
+  --fundo: #0d1117;
+  --painel: rgba(16, 22, 34, 0.92);
+  --texto: #e8edf5;
+  --mut: #93a0b8;
+  --acento: #ffc93c;
+  --borda: #2a3550;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto); font-family: system-ui, Segoe UI, Roboto, sans-serif; overflow: hidden; }
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+.etiqueta {
+  position: fixed; z-index: 5; font-size: 12px; letter-spacing: 0.08em;
+  background: rgba(0, 0, 0, 0.55); border: 1px solid var(--borda);
+  padding: 4px 10px; border-radius: 999px; pointer-events: none;
+}
+#et-frente { left: 12px; top: 54px; }
+#et-cima { left: calc(50% + 12px); top: 54px; }
+#et-lateral { left: calc(50% + 12px); top: 54%; }
+#btn-painel { width: auto; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--borda); background: #0f1522; color: var(--texto); cursor: pointer; }
+#painel.fechado { display: none; }
+
+#topo {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  display: flex; gap: 12px; align-items: center;
+  padding: 8px 14px; background: var(--painel); border-bottom: 1px solid var(--borda);
+  font-size: 14px;
+}
+#topo b { color: var(--acento); }
+#gamepad-status { margin-left: auto; color: var(--mut); font-size: 12px; }
+
+#painel {
+  position: fixed; top: 48px; right: 10px; z-index: 10; width: 264px;
+  background: var(--painel); border: 1px solid var(--borda); border-radius: 12px;
+  padding: 12px; font-size: 13px; max-height: calc(100% - 220px); overflow: auto;
+}
+#painel h3 { margin: 10px 0 6px; font-size: 12px; text-transform: uppercase; color: var(--mut); }
+#painel select, #painel button { width: 100%; margin: 3px 0; padding: 6px; border-radius: 8px; border: 1px solid var(--borda); background: #0f1522; color: var(--texto); }
+#painel button { cursor: pointer; }
+#painel button:hover { border-color: var(--acento); }
+.linha { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
+.linha input[type="range"] { flex: 1; }
+.linha label { width: 52px; color: var(--mut); }
+.valor { color: var(--acento); font-variant-numeric: tabular-nums; font-size: 12px; }
+.ik { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
+.ik label { display: flex; gap: 6px; align-items: center; }
+#msg { min-height: 18px; color: var(--mut); font-size: 12px; }
+
+#joy-base {
+  position: fixed; left: 18px; bottom: 18px; z-index: 10;
+  width: 128px; height: 128px; border-radius: 50%;
+  background: rgba(20, 28, 44, 0.8); border: 2px solid var(--borda);
+  touch-action: none; cursor: grab;
+}
+#joy-pino {
+  position: absolute; left: 50%; top: 50%; width: 56px; height: 56px;
+  margin: -28px 0 0 -28px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffe08a, var(--acento));
+  pointer-events: none;
+}
+#joy-rotulo { position: fixed; left: 18px; bottom: 152px; z-index: 10; font-size: 12px; color: var(--mut); }
+
+#ajuda {
+  position: fixed; left: 18px; bottom: 18px; z-index: 9; display: none;
+}
+@media (max-width: 900px) {
+  #painel { width: 210px; font-size: 12px; }
+}
