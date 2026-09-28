@@ -36,7 +36,15 @@ export const CADEIAS_IK = [
   { nome: 'perna_D', raiz: 'coxa_D', meio: 'perna_D', efetor: 'pe_D', alvo: 'alvo_pe_D', polo: 'polo_joelho_D' },
 ];
 
-/** Controladores (curvas/primitivas geometricas) — um por junta + alvos IK. */
+/** Controladores que o usuario pode selecionar e mover (nada de bones expostos). */
+export const CONTROLADORES_MOVEIS = [
+  'ctrl_cintura',
+  'alvo_mao_E', 'alvo_mao_D', 'alvo_pe_E', 'alvo_pe_D',
+  'polo_cotovelo_E', 'polo_cotovelo_D', 'polo_joelho_E', 'polo_joelho_D',
+];
+
+/** Cores dos eixos padrao Blender: X vermelho, Y verde, Z azul. */
+export const COR_EIXO = { x: 0xff383c, y: 0x44dd44, z: 0x4488ff };
 export const CONTROLADORES = [
   'ctrl_cintura',
   'ctrl_barriga',

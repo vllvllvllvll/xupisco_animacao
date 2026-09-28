@@ -76,14 +76,14 @@
   <g id="gamepad">
     <text x="40" y="810" font-size="20" fill="#ff383c">4 · gamepad + toques</text>
     <rect x="40" y="825" width="250" height="60" fill="#ff383c"/>
-    <text x="52" y="849" font-size="13" fill="#ffffff">stick ESQ = cintura (anda+gira)</text>
+    <text x="52" y="849" font-size="13" fill="#ffffff">stick ESQ = move controlador</text>
     <rect x="310" y="825" width="250" height="60" fill="#ff383c"/>
-    <text x="322" y="849" font-size="13" fill="#ffffff">stick DIR = lista / move bone</text>
+    <text x="322" y="849" font-size="13" fill="#ffffff">stick DIR = so seleciona</text>
     <rect x="580" y="825" width="150" height="60" fill="#ff383c"/>
     <text x="592" y="849" font-size="13" fill="#ffffff">L1 = cicla X→Y→Z</text>
     <rect x="750" y="825" width="170" height="60" fill="#ff383c"/>
     <text x="762" y="849" font-size="13" fill="#ffffff">R1 = confirma (modo)</text>
-    <text x="40" y="915" font-size="14" fill="#000000">selecao —R1→ mover —R1→ selecao · X vermelho mostra o eixo · drawer hamburger = lista hierarquica</text>
+    <text x="40" y="915" font-size="14" fill="#000000">selecao —R1→ mover —R1→ selecao · eixos Blender X/Y/Z · so controladores (9), sem bones</text>
     <text x="40" y="940" font-size="13" fill="#333333">marcha procedural pausa o Y da cintura quando o usuario move a cintura no modo mover</text>
   </g>
 
@@ -99,6 +99,6 @@
     <rect x="440" y="1003" width="260" height="40" fill="#ff383c"/>
     <text x="452" y="1028" font-size="13" fill="#ffffff">onion: key anterior + proxima</text>
     <text x="40" y="1070" font-size="13" fill="#333333">play aplica keys interpoladas e pausa IK/marcha · click no chip pula p/ a key · limpar zera</text>
-    <text x="40" y="1110" font-size="13" fill="#555555">testes: node:test (34) + E2E gamepad fake (19 bones × sel/confirma/move x,y,z = 133 checks) · deploy: vercel --prod</text>
+    <text x="40" y="1110" font-size="13" fill="#555555">testes: node:test (36) + E2E gamepad fake (9 ctrls × sel/confirma/move x,y,z) · deploy: vercel --prod</text>
   </g>
 </svg>

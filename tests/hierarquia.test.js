@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { HIERARQUIA, CADEIAS_IK, CONTROLADORES, listarBones, mapaDePais, validarHierarquia, RAIZ } from '../src/rig/hierarquia.js';
+import { HIERARQUIA, CADEIAS_IK, CONTROLADORES, CONTROLADORES_MOVEIS, COR_EIXO, listarBones, mapaDePais, validarHierarquia, RAIZ } from '../src/rig/hierarquia.js';
 
 describe('hierarquia do rig (PT-BR)', () => {
   it('raiz e unica e se chama cintura', () => {
@@ -55,5 +55,14 @@ describe('hierarquia do rig (PT-BR)', () => {
     assert.ok(CONTROLADORES.includes('ctrl_cintura'));
     assert.ok(CONTROLADORES.includes('alvo_mao_E'));
     assert.ok(CONTROLADORES.includes('polo_joelho_D'));
+  });
+
+  it('9 controladores moveis (sem bones expostos) + cores Blender', () => {
+    assert.equal(CONTROLADORES_MOVEIS.length, 9);
+    assert.ok(CONTROLADORES_MOVEIS.includes('ctrl_cintura'));
+    for (const n of CONTROLADORES_MOVEIS) {
+      assert.match(n, /^(ctrl_cintura|alvo_|polo_)/);
+    }
+    assert.deepEqual(Object.keys(COR_EIXO), ['x', 'y', 'z']);
   });
 });

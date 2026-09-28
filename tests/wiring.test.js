@@ -30,8 +30,9 @@ describe('wiring UI (ids do HTML x JS)', () => {
   });
 
   it('drawer usa details colapsaveis (lista curta, R1 livre)', () => {
-    for (const s of ['Bones', 'Junta (FK)', 'Alvo IK', 'IK ligado', 'Poses']) {
+    for (const s of ['Controladores', 'Alvo IK', 'IK ligado', 'Poses']) {
       assert.ok(html.includes(`<summary>${s}</summary>`), `falta details ${s}`);
     }
+    assert.ok(!html.includes('id="junta"'), 'bones (select junta) nao podem existir no HTML');
   });
 });

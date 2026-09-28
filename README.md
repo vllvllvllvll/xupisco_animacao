@@ -35,11 +35,12 @@ Um único `WebGLRenderer` com scissor: esquerda = frente, direita-cima = cima,
 direita-baixo = lateral (ver `src/cena/viewports.js`). Padrão do manual
 three.js "multiple scenes / scissor".
 
-## Controles
+## Controles (so controladores — bones ficam escondidos)
 
-- Joystick virtual (canto inferior esquerdo) move a **cintura** no plano + gira.
-- Gamepad API: stick esquerdo faz o mesmo quando o joystick virtual está parado.
-- WASD = mover, setas = mover alvo IK selecionado, R = repouso.
-- Sliders FK (RX/RY/RZ) por junta + sliders XYZ por alvo IK.
-- Marcha procedural: com "Animar" ligado, os alvos dos pés/mãos oscilam
-  em seno (amplitude cresce com o joystick) e a cintura balança.
+- Joystick virtual esquerdo / stick esquerdo do gamepad: move o controlador
+  selecionado no eixo ativo (X vermelho, Y verde, Z azul, padrao Blender).
+- Joystick virtual direito / stick direito: navega a lista de controladores.
+- L1 (tela ou gamepad): cicla o eixo; R1: confirma (selecao ↔ mover).
+- Controladores: `ctrl_cintura` (move o boneco), alvos IK das maos/pes e polos.
+- O selecionado pulsa (1.3x); a seta do eixo aparece enquanto move.
+- WASD foi removido; setas movem o controlador selecionado, R = repouso.

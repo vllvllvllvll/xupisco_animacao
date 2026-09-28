@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { initPalco } from './cena/palco.js';
 import { calcularViewports } from './cena/viewports.js';
 import { buildPersonagem } from './rig/personagem.js';
-import { listarBones, mapaDePais } from './rig/hierarquia.js';
+import { listarBones, CONTROLADORES_MOVEIS, COR_EIXO } from './rig/hierarquia.js';
 import { resolverIK2Ossos } from './rig/ik.js';
-import { mapearJoystickParaMovimento, fixar, proximoEixo, navegarLista, bordaSubida, moverNoEixo } from './controle/joystick.js';
+import { fixar, proximoEixo, navegarLista, bordaSubida, moverNoEixo } from './controle/joystick.js';
 import { initJoystickVirtual } from './controle/virtual.js';
 import { lerGamepad } from './controle/gamepad.js';
 import { extrairPose, aplicarPose, amostrar, quadroAtual } from './anim/timeline.js';
@@ -24,7 +24,7 @@ function buildHelper() {
 
 // ---------- Estado ----------
 const estado = {
-  junta: 'peito',
+  controlador: 'alvo_mao_D', // o usuario so toca controladores, nunca bones
   alvo: 'alvo_mao_D',
   ik: { braco_E: true, braco_D: true, perna_E: true, perna_D: true },
   animar: true,
@@ -36,16 +36,18 @@ const estado = {
   eixo: 'x', // L1 cicla x → y → z
   navCd: 0,
 };
-const BONES = listarBones();
 const prevBotoes = { l1: false, r1: false };
 
-// Linha do eixo ativo (aparece ao mover o bone com o analogico direito).
-const COR_EIXO = 0xff383c;
-const linhaEixo = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0.6, COR_EIXO, 0.12, 0.06);
+// Objeto que o controlador selecionado move (cintura = o bone raiz; resto = alvo/polo).
+const resolverControlador = (nome) => (nome === 'ctrl_cintura' ? bones.cintura : controles[nome]);
+// Visual que pulsa para indicar a selecao (nunca escala bone).
+const resolverVisual = (nome) => controles[nome];
+
+// Linha do eixo ativo na cor Blender (aparece ao mover o controlador).
+const linhaEixo = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0.6, COR_EIXO.x, 0.12, 0.06);
 linhaEixo.visible = false;
 palco.scene.add(linhaEixo);
 const _posBone = new THREE.Vector3();
-const _quatBone = new THREE.Quaternion();
 const _dirEixo = new THREE.Vector3();
 
 const CHAINS = [
@@ -109,14 +111,8 @@ function aplicarIK(nome) {
   apontarOsso(meio, _M, _T);
 }
 
-// ---------- UI ----------
-const selJunta = $('junta'), selAlvo = $('alvo');
-for (const n of listarBones()) {
-  const o = document.createElement('option');
-  o.value = n; o.textContent = n;
-  if (n === estado.junta) o.selected = true;
-  selJunta.appendChild(o);
-}
+// ---------- UI (so controladores; bones ficam escondidos) ----------
+const selAlvo = $('alvo');
 for (const n of Object.keys(controles)) {
   if (!n.startsWith('alvo_')) continue;
   const o = document.createElement('option');
@@ -124,42 +120,20 @@ for (const n of Object.keys(controles)) {
   if (n === estado.alvo) o.selected = true;
   selAlvo.appendChild(o);
 }
-selJunta.addEventListener('change', () => selecionarJunta(selJunta.value));
 selAlvo.addEventListener('change', () => { estado.alvo = selAlvo.value; lerSlidersDoAlvo(); });
 
-// Lista de bones hierarquizada no drawer (indent = profundidade).
-const MAPA_PAIS = mapaDePais();
-const profundidade = (n) => (MAPA_PAIS[n] ? 1 + profundidade(MAPA_PAIS[n]) : 0);
-const botoesBones = {};
-for (const n of BONES) {
+// Lista de controladores no drawer.
+const botoesControles = {};
+for (const n of CONTROLADORES_MOVEIS) {
   const b = document.createElement('button');
   b.textContent = n;
-  b.style.paddingLeft = `${4 + profundidade(n) * 12}px`;
-  b.addEventListener('click', () => selecionarJunta(n));
-  $('bones-lista').appendChild(b);
-  botoesBones[n] = b;
+  b.addEventListener('click', () => selecionarControlador(n));
+  $('controladores-lista').appendChild(b);
+  botoesControles[n] = b;
 }
-function selecionarJunta(nome) {
-  estado.junta = nome;
-  selJunta.value = nome;
-  for (const [n, b] of Object.entries(botoesBones)) b.classList.toggle('atual', n === nome);
-  lerSlidersDaJunta();
-}
-
-const GRAUS = Math.PI / 180;
-function lerSlidersDaJunta() {
-  const b = bones[estado.junta];
-  $('rx').value = Math.round(b.rotation.x / GRAUS);
-  $('ry').value = Math.round(b.rotation.y / GRAUS);
-  $('rz').value = Math.round(b.rotation.z / GRAUS);
-  mostrarValores();
-}
-for (const id of ['rx', 'ry', 'rz']) {
-  $(id).addEventListener('input', () => {
-    const b = bones[estado.junta];
-    b.rotation.set($('rx').value * GRAUS, $('ry').value * GRAUS, $('rz').value * GRAUS);
-    mostrarValores();
-  });
+function selecionarControlador(nome) {
+  estado.controlador = nome;
+  for (const [n, b] of Object.entries(botoesControles)) b.classList.toggle('atual', n === nome);
 }
 function lerSlidersDoAlvo() {
   const a = controles[estado.alvo];
@@ -176,7 +150,6 @@ for (const id of ['tx', 'ty', 'tz']) {
   });
 }
 function mostrarValores() {
-  $('val-junta').textContent = `${$('rx').value}° ${$('ry').value}° ${$('rz').value}°`;
   $('val-alvo').textContent = `${parseFloat($('tx').value).toFixed(2)} ${parseFloat($('ty').value).toFixed(2)} ${parseFloat($('tz').value).toFixed(2)}`;
 }
 
@@ -202,7 +175,7 @@ function poseRepouso() {
   controles.polo_cotovelo_D.position.set(0.55, 1.35, -0.35);
   controles.polo_joelho_E.position.set(-0.12, 0.6, 0.5);
   controles.polo_joelho_D.position.set(0.12, 0.6, 0.5);
-  lerSlidersDaJunta(); lerSlidersDoAlvo();
+  lerSlidersDoAlvo();
 }
 function poseT() {
   poseRepouso();
@@ -216,7 +189,7 @@ function poseSentar() {
   controles.alvo_pe_E.position.set(-0.13, 0.12, 0.42);
   controles.alvo_pe_D.position.set(0.13, 0.12, 0.42);
   bones.pescoco.rotation.x = -0.15;
-  lerSlidersDaJunta(); lerSlidersDoAlvo();
+  lerSlidersDoAlvo();
 }
 function salvarPose() {
   const pose = {};
@@ -236,7 +209,6 @@ function lerPose() {
       bones[n].rotation.set(...pose[n].r);
       if (n === 'cintura' && pose[n].p) bones.cintura.position.set(...pose[n].p);
     }
-    lerSlidersDaJunta();
     $('msg').textContent = 'Pose restaurada.';
   } catch { $('msg').textContent = 'Falha ao ler pose.'; }
 }
@@ -274,7 +246,7 @@ function desenharKeys() {
   tl.keys.forEach((k, i) => {
     const b = document.createElement('button');
     b.textContent = `K${i + 1} ${k.t.toFixed(1)}s`;
-    b.addEventListener('click', () => { tl.playhead = k.t; aplicarPose(bones, k.pose); lerSlidersDaJunta(); });
+    b.addEventListener('click', () => { tl.playhead = k.t; aplicarPose(bones, k.pose); lerSlidersDoAlvo(); });
     box.appendChild(b);
   });
   $('tl-frame').textContent = `q${quadroAtual(tl.playhead, tl.fps)} · ${tl.playhead.toFixed(2)}s · ${tl.keys.length} keys`;
@@ -322,7 +294,7 @@ initJoystickVirtual($('joy-base'), $('joy-pino'), (j) => { estado.joy = j; });
 initJoystickVirtual($('joy2-base'), $('joy2-pino'), (j) => { estado.joyR = j; });
 
 // Hook p/ teste E2E (le estado/bones sem expor no UI).
-window.__xup = { estado, bones, BONES };
+window.__xup = { estado, bones, controles, CONTROLADORES: CONTROLADORES_MOVEIS };
 
 // ---------- Loop ----------
 const relogio = new THREE.Clock();
@@ -331,73 +303,67 @@ const alvoCameras = new THREE.Vector3(0, 1, 0);
 function passo(dt) {
   estado.tempo += dt * estado.velocidade;
 
-  // Entrada: joystick virtual tem prioridade; senao gamepad; senao teclado.
+  // Entrada ESQUERDA: move o controlador selecionado no eixo ativo.
+  // Entrada DIREITA: so seleciona (navega a lista no modo selecao).
   let jx = estado.joy.x, jy = estado.joy.y;
   const gp = lerGamepad();
   $('gamepad-status').textContent = gp.conectado ? `Gamepad: ${gp.id.slice(0, 28)}` : 'Gamepad: nenhum (conecte e aperte um botao)';
   if (Math.hypot(jx, jy) < 0.05 && gp.conectado) { jx = gp.stick.x; jy = gp.stick.y; }
+  jx = Math.max(-1, Math.min(1, jx)); jy = Math.max(-1, Math.min(1, jy));
+  const cin = bones.cintura;
 
-  // Stick direito (gamepad ou toque): R1 alterna selecao/mover, L1 cicla o eixo.
   const sr = gp.conectado && gp.stickR.intensidade > 0.05 ? gp.stickR : estado.joyR;
   if (gp.conectado) {
     if (bordaSubida(prevBotoes.l1, gp.l1)) ciclarEixo();
     if (bordaSubida(prevBotoes.r1, gp.r1)) alternarModo();
     prevBotoes.l1 = gp.l1; prevBotoes.r1 = gp.r1;
   }
-  if (gp.conectado || sr.intensidade > 0.05) {
+  if ((gp.conectado || sr.intensidade > 0.05) && estado.modo === 'selecao') {
     estado.navCd -= dt;
-    const bone = bones[estado.junta];
-    if (estado.modo === 'selecao') {
-      linhaEixo.visible = false;
-      const dir = sr.y > 0.5 ? -1 : sr.y < -0.5 ? 1 : 0;
-      if (dir !== 0 && estado.navCd <= 0) {
-        estado.navCd = 0.25;
-        selecionarJunta(BONES[navegarLista(BONES.indexOf(estado.junta), dir, BONES.length)]);
-      }
-    } else {
-      const s = estado.eixo === 'y' ? sr.y : sr.x;
-      bone.position[estado.eixo] = moverNoEixo(bone.position[estado.eixo], s, { vel: 1.5, dt });
-      if (estado.junta === 'cintura') bone.position.y = fixar(bone.position.y, 0.2, 2);
-      linhaEixo.visible = Math.abs(s) > 0.05;
-      if (linhaEixo.visible) {
-        bone.getWorldPosition(_posBone);
-        bone.getWorldQuaternion(_quatBone);
-        _dirEixo.set(0, 0, 0); _dirEixo[estado.eixo] = 1;
-        linhaEixo.position.copy(_posBone);
-        linhaEixo.setDirection(_dirEixo.applyQuaternion(_quatBone));
-      }
-    }
-    $('gpad-modo').textContent = `gamepad: ${estado.modo} · ${estado.junta} · eixo ${estado.eixo.toUpperCase()}`;
-  } else {
     linhaEixo.visible = false;
-    $('gpad-modo').textContent = 'R1 confirma · L1 eixo';
+    const dir = sr.y > 0.5 ? -1 : sr.y < -0.5 ? 1 : 0;
+    if (dir !== 0 && estado.navCd <= 0) {
+      estado.navCd = 0.25;
+      const L = CONTROLADORES_MOVEIS;
+      selecionarControlador(L[navegarLista(L.indexOf(estado.controlador), dir, L.length)]);
+    }
   }
-  $('eixo-ind').textContent = estado.eixo.toUpperCase();
-  if (teclas.has('w')) jy += 1; if (teclas.has('s')) jy -= 1;
-  if (teclas.has('a')) jx -= 1; if (teclas.has('d')) jx += 1;
-  jx = Math.max(-1, Math.min(1, jx)); jy = Math.max(-1, Math.min(1, jy));
 
-  const mov = mapearJoystickParaMovimento(jx, jy, { velocidade: 2.2, giro: 2.6, dt });
-  const cin = bones.cintura;
-  // Move no espaco local do personagem (relativo ao giro atual).
-  const frente = new THREE.Vector3(-Math.sin(cin.rotation.y), 0, -Math.cos(cin.rotation.y));
-  const lado = new THREE.Vector3(-frente.z, 0, frente.x);
-  const passoF = -mov.dz; // dz negativo = frente
-  cin.position.addScaledVector(frente, passoF).addScaledVector(lado, mov.dx);
-  cin.position.x = Math.max(-4, Math.min(4, cin.position.x));
-  cin.position.z = Math.max(-4, Math.min(4, cin.position.z));
-  if (Math.abs(jx) > 0.05) cin.rotation.y += mov.giroY * 2;
+  const ctl = resolverControlador(estado.controlador);
+  let s = 0;
+  if (estado.modo === 'mover') {
+    s = estado.eixo === 'y' ? jy : jx;
+    ctl.position[estado.eixo] = moverNoEixo(ctl.position[estado.eixo], s, { vel: 1.5, dt });
+    if (estado.controlador === 'ctrl_cintura') {
+      ctl.position.x = fixar(ctl.position.x, -4, 4);
+      ctl.position.z = fixar(ctl.position.z, -4, 4);
+      ctl.position.y = fixar(ctl.position.y, 0.2, 2);
+    }
+  }
+  // Linha do eixo (cor Blender) + pulso no controlador selecionado.
+  linhaEixo.visible = estado.modo === 'mover' && Math.abs(s) > 0.05;
+  if (linhaEixo.visible) {
+    resolverVisual(estado.controlador).getWorldPosition(_posBone);
+    _dirEixo.set(0, 0, 0); _dirEixo[estado.eixo] = 1;
+    linhaEixo.position.copy(_posBone);
+    linhaEixo.setDirection(_dirEixo);
+    linhaEixo.setColor(new THREE.Color(COR_EIXO[estado.eixo]));
+  }
+  for (const n of CONTROLADORES_MOVEIS) resolverVisual(n).scale.setScalar(n === estado.controlador ? 1.3 : 1);
+  $('gpad-modo').textContent = `${estado.modo} · ${estado.controlador} · eixo ${estado.eixo.toUpperCase()}`;
+  const ind = $('eixo-ind');
+  ind.textContent = estado.eixo.toUpperCase();
+  ind.style.color = '#' + COR_EIXO[estado.eixo].toString(16).padStart(6, '0');
 
-  // Setas movem o alvo selecionado no plano da camera de frente.
+  // Setas movem o controlador selecionado (teclado espelha o stick esquerdo).
   const vel = 1.2 * dt;
-  const al = controles[estado.alvo];
-  if (teclas.has('arrowleft')) al.position.x -= vel;
-  if (teclas.has('arrowright')) al.position.x += vel;
-  if (teclas.has('arrowup')) al.position.y += vel;
-  if (teclas.has('arrowdown')) al.position.y -= vel;
+  if (teclas.has('arrowleft')) ctl.position.x -= vel;
+  if (teclas.has('arrowright')) ctl.position.x += vel;
+  if (teclas.has('arrowup')) ctl.position.y += vel;
+  if (teclas.has('arrowdown')) ctl.position.y -= vel;
 
-  // Ciclo de marcha procedural nos alvos (exercita o IK).
-  if (estado.animar) {
+  // Ciclo de marcha procedural (pausa no modo mover p/ nao brigar com o usuario).
+  if (estado.animar && !tl.tocando && estado.modo !== 'mover') {
     const t = estado.tempo * 5;
     const amp = 0.16 + 0.22 * Math.min(1, Math.hypot(jx, jy));
     const bal = Math.sin(t) * amp;
@@ -409,10 +375,7 @@ function passo(dt) {
     controles.alvo_pe_D.position.y = Math.max(0.04, BASE_ALVOS.alvo_pe_D.y + liftD - 0.03);
     controles.alvo_mao_E.position.z = BASE_ALVOS.alvo_mao_E.z - bal * 0.7;
     controles.alvo_mao_D.position.z = BASE_ALVOS.alvo_mao_D.z + bal * 0.7;
-    // Marcha nao briga com o Y quando o usuario move a cintura no modo mover.
-    if (!(estado.modo === 'mover' && estado.junta === 'cintura')) {
-      cin.position.y = BASE_CINTURA_Y + Math.abs(Math.sin(t)) * 0.03 - 0.01;
-    }
+    cin.position.y = BASE_CINTURA_Y + Math.abs(Math.sin(t)) * 0.03 - 0.01;
   }
 
   // Timeline: play aplica keys; IK pausa p/ nao brigar com elas.
@@ -452,6 +415,6 @@ function quadro() {
 }
 
 poseRepouso();
-selecionarJunta(estado.junta);
+selecionarControlador(estado.controlador);
 lerSlidersDoAlvo();
 quadro();

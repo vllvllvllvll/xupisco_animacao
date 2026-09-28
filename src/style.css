@@ -57,14 +57,14 @@ body { display: flex; flex-direction: column; }
 #painel.fechado { display: none; }
 #painel details { margin: 6px 0; }
 #painel summary { cursor: pointer; font-size: 12px; text-transform: uppercase; color: var(--mut); padding: 2px 0; }
-#bones-lista { display: flex; flex-direction: column; max-height: 32vh; overflow-y: auto; }
-#bones-lista button {
+#controladores-lista { display: flex; flex-direction: column; max-height: 32vh; overflow-y: auto; }
+#controladores-lista button {
   background: none; border: none; text-align: left; cursor: pointer;
   font: 12px ui-monospace, "Intel One Mono", Menlo, monospace; color: #ff383c;
   padding: 2px 4px; margin: 0; width: 100%;
 }
-#painel #bones-lista button { color: #ff383c; }
-#bones-lista button.atual { background: #2a1414; }
+#painel #controladores-lista button { color: #ff383c; }
+#controladores-lista button.atual { background: #2a1414; }
 #painel h3 { margin: 10px 0 6px; font-size: 12px; text-transform: uppercase; color: var(--mut); }
 #painel select, #painel button { width: 100%; margin: 3px 0; padding: 6px; border-radius: 8px; border: 1px solid var(--borda); background: #d9d9d9; color: var(--texto); }
 #painel button { cursor: pointer; }

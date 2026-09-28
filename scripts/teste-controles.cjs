@@ -1,5 +1,5 @@
-// E2E: gamepad fake percorre os 19 bones — seleciona, confirma (R1),
-// move nos 3 eixos (L1 cicla) — e valida cada passo no DOM + estado.
+// E2E: percorre os 9 controladores — seleciona (stick DIR/lista), confirma (R1),
+// move nos 3 eixos (stick ESQ, L1 cicla) — valida cada passo no DOM + estado.
 // Uso: npm run test:e2e (sobe preview proprio na 4180)
 const { spawn } = require('child_process');
 const path = require('path');
@@ -61,57 +61,60 @@ const ok = (cond, rotulo) => {
     try { Object.defineProperty(navigator, 'getGamepads', { value: window.__fakePad, configurable: true }); } catch (e) {}`;
   await send('Page.addScriptToEvaluateOnNewDocument', { source: FAKE_SRC });
   await send('Page.navigate', { url: `http://localhost:${PORT}/` });
-  // espera app pronto: 19 opcoes no select de juntas
   for (let i = 0; i < 60; i++) {
-    const n = await expr(`document.getElementById('junta').options.length`);
-    if (n === 19) break;
+    const n = await expr(`document.querySelectorAll('#controladores-lista button').length`);
+    if (n === 9) break;
     await sleep(1000);
   }
-  await expr(FAKE_SRC); // garante na instancia (se o pre-script nao pegou)
+  await expr(FAKE_SRC);
   await sleep(3000);
-  console.log('diag modo:', await expr(`document.getElementById('gpad-modo').textContent`));
 
-  const junta = () => expr(`document.getElementById('junta').value`);
+  const sel = () => expr(`window.__xup.estado.controlador`);
   const modo = () => expr(`document.getElementById('gpad-modo').textContent`);
   const letraEixo = () => expr(`document.getElementById('eixo-ind').textContent`);
-  const pos = (b) => expr(`window.__xup.bones['${b}'].position.toArray()`);
+  const pos = (c) => expr(`('${c}' === 'ctrl_cintura' ? window.__xup.bones.cintura : window.__xup.controles['${c}']).position.toArray()`);
   const setPad = (patch) => expr(`Object.assign(window.__pad, ${JSON.stringify(patch)})`);
   const botoes = (l1, r1) => setPad({ btn: [false, false, false, false, l1, r1, false, false] });
   const pressR1 = async () => { await botoes(false, true); await sleep(200); await botoes(false, false); await sleep(300); };
   const pressL1 = async () => { await botoes(true, false); await sleep(200); await botoes(false, false); await sleep(300); };
   const passoNav = async () => { await setPad({ ax: [0, 0, 0, 1] }); await sleep(150); await setPad({ ax: [0, 0, 0, 0] }); await sleep(400); };
-  const empurra = async (eixo) => { // 1s no eixo (headless lento tem dt clampado)
-    if (eixo === 'y') await setPad({ ax: [0, 0, 0, -1] }); else await setPad({ ax: [0, 0, 1, 0] });
+  const empurraEsq = async (eixo) => { // stick ESQ move o controlador
+    if (eixo === 'y') await setPad({ ax: [0, -1, 0, 0] }); else await setPad({ ax: [1, 0, 0, 0] });
     await sleep(1000);
     await setPad({ ax: [0, 0, 0, 0] }); await sleep(250);
   };
 
-  const BONES = await expr(`window.__xup.BONES`);
-  ok(Array.isArray(BONES) && BONES.length === 19, `19 bones expostos (achou ${BONES && BONES.length})`);
-  ok(await junta() === 'peito', 'inicio em peito');
+  const LISTA = await expr(`window.__xup.CONTROLADORES`);
+  ok(Array.isArray(LISTA) && LISTA.length === 9, `9 controladores expostos (achou ${LISTA && LISTA.length})`);
+  ok(await sel() === 'alvo_mao_D', 'inicio em alvo_mao_D');
   ok((await modo()).includes('selecao'), 'inicio em modo selecao');
 
-  const idx = async () => BONES.indexOf(await junta());
-  for (let k = 0; k < 19; k++) {
-    const esperado = BONES[((await idx()) + 1) % 19];
+  // click no drawer seleciona direto
+  await expr(`[...document.querySelectorAll('#controladores-lista button')].find(b=>b.textContent==='polo_joelho_D').click()`);
+  await sleep(300);
+  ok(await sel() === 'polo_joelho_D', 'click no drawer seleciona polo_joelho_D');
+
+  const idx = async () => LISTA.indexOf(await sel());
+  for (let k = 0; k < 9; k++) {
+    const esperado = LISTA[((await idx()) + 1) % 9];
     await passoNav();
-    const sel = await junta();
-    ok(sel === esperado, `[${k + 1}/19] seleciona ${sel}`);
-    if (sel !== esperado) { console.log('    esperado: ' + esperado); continue; }
+    const atual = await sel();
+    ok(atual === esperado, `[${k + 1}/9] seleciona ${atual}`);
+    if (atual !== esperado) { console.log('    esperado: ' + esperado); continue; }
     await pressR1();
-    ok((await modo()).includes('mover'), `  R1 confirma ${sel} → mover`);
-    for (const [eixo, letra] of [['x', 'X'], ['y', 'Y'], ['z', 'Z']]) {
-      const antes = (await pos(sel))[['x', 'y', 'z'].indexOf(eixo)];
-      await empurra(eixo);
-      const depois = (await pos(sel))[['x', 'y', 'z'].indexOf(eixo)];
-      ok(Math.abs(depois - antes) > 0.25, `  move ${sel}.${eixo}: ${antes.toFixed(2)} → ${depois.toFixed(2)}`);
+    ok((await modo()).includes('mover'), `  R1 confirma ${atual} → mover`);
+    for (const [eixo] of [['x'], ['y'], ['z']]) {
+      const antes = (await pos(atual))[['x', 'y', 'z'].indexOf(eixo)];
+      await empurraEsq(eixo);
+      const depois = (await pos(atual))[['x', 'y', 'z'].indexOf(eixo)];
+      ok(Math.abs(depois - antes) > 0.25, `  move ${atual}.${eixo}: ${antes.toFixed(2)} → ${depois.toFixed(2)}`);
       await pressL1();
     }
     ok(await letraEixo() === 'X', '  L1 ciclou x→y→z→X');
     await pressR1();
     ok((await modo()).includes('selecao'), '  R1 volta p/ selecao');
   }
-  ok((await junta()) === 'peito', 'deu a volta e voltou em peito');
+  ok(await sel() === 'polo_joelho_D', 'deu a volta e voltou em polo_joelho_D');
   ok(errosConsole.length === 0, `console sem excecoes (${errosConsole.length})`);
   if (errosConsole.length) console.log(errosConsole.slice(0, 3));
 
