@@ -1,6 +1,6 @@
 :root {
   --fundo: #0d1117;
-  --painel: rgba(16, 22, 34, 0.92);
+  --painel: #101624;
   --texto: #e8edf5;
   --mut: #93a0b8;
   --acento: #ffc93c;
@@ -8,47 +8,54 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto); font-family: system-ui, Segoe UI, Roboto, sans-serif; overflow: hidden; }
-#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+body { display: flex; flex-direction: column; }
 
-.etiqueta {
-  position: fixed; z-index: 5; font-size: 12px; letter-spacing: 0.08em;
-  background: rgba(0, 0, 0, 0.55); border: 1px solid var(--borda);
-  padding: 4px 10px; border-radius: 999px; pointer-events: none;
-}
-#et-frente { left: 12px; top: 54px; }
-#et-cima { left: calc(50% + 12px); top: 54px; }
-#et-lateral { left: calc(50% + 12px); top: 54%; }
-#btn-painel { width: auto; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--borda); background: #0f1522; color: var(--texto); cursor: pointer; }
-#painel.fechado { display: none; }
-
+/* ---- topo ---- */
 #topo {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-  display: flex; gap: 12px; align-items: center;
+  display: flex; gap: 10px; align-items: center; flex: none;
   padding: 8px 14px; background: var(--painel); border-bottom: 1px solid var(--borda);
   font-size: 14px;
 }
 #topo b { color: var(--acento); }
+#topo button { width: auto; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--borda); background: #0f1522; color: var(--texto); cursor: pointer; }
 #gamepad-status { margin-left: auto; color: var(--mut); font-size: 12px; }
 
-#painel {
-  position: fixed; top: 48px; right: 10px; z-index: 10; width: 264px;
-  background: var(--painel); border: 1px solid var(--borda); border-radius: 12px;
-  padding: 12px; font-size: 13px; max-height: calc(100% - 220px); overflow: auto;
+/* ---- meio: palco + painel encaixados, nada flutua ---- */
+#meio { display: flex; flex: 1; min-height: 0; }
+#palco-wrap { position: relative; flex: 1; min-width: 0; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.etiqueta {
+  position: absolute; z-index: 5; font-size: 12px; letter-spacing: 0.08em;
+  background: rgba(0, 0, 0, 0.55); border: 1px solid var(--borda);
+  padding: 4px 10px; border-radius: 999px; pointer-events: none;
 }
+#et-frente { left: 12px; top: 8px; }
+#et-cima { left: calc(50% + 12px); top: 8px; }
+#et-lateral { left: calc(50% + 12px); top: calc(50% + 8px); }
+
+#painel {
+  flex: none; width: 272px; overflow-y: auto;
+  background: var(--painel); border-left: 1px solid var(--borda);
+  padding: 12px; font-size: 13px;
+}
+#painel.fechado { display: none; }
 #painel h3 { margin: 10px 0 6px; font-size: 12px; text-transform: uppercase; color: var(--mut); }
 #painel select, #painel button { width: 100%; margin: 3px 0; padding: 6px; border-radius: 8px; border: 1px solid var(--borda); background: #0f1522; color: var(--texto); }
 #painel button { cursor: pointer; }
 #painel button:hover { border-color: var(--acento); }
 .linha { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
-.linha input[type="range"] { flex: 1; }
-.linha label { width: 52px; color: var(--mut); }
+.linha input[type="range"] { flex: 1; min-width: 0; }
+.linha label { width: 52px; flex: none; color: var(--mut); }
 .valor { color: var(--acento); font-variant-numeric: tabular-nums; font-size: 12px; }
 .ik { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
 .ik label { display: flex; gap: 6px; align-items: center; }
 #msg { min-height: 18px; color: var(--mut); font-size: 12px; }
 
+/* ---- joystick + botoes L1/R1 ---- */
+#joy-rotulo { position: absolute; left: 18px; bottom: 152px; z-index: 10; font-size: 12px; color: var(--mut); pointer-events: none; }
 #joy-base {
-  position: fixed; left: 18px; bottom: 18px; z-index: 10;
+  position: absolute; left: 18px; bottom: 18px; z-index: 10;
   width: 128px; height: 128px; border-radius: 50%;
   background: rgba(20, 28, 44, 0.8); border: 2px solid var(--borda);
   touch-action: none; cursor: grab;
@@ -59,11 +66,46 @@ html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--tex
   background: radial-gradient(circle at 35% 35%, #ffe08a, var(--acento));
   pointer-events: none;
 }
-#joy-rotulo { position: fixed; left: 18px; bottom: 152px; z-index: 10; font-size: 12px; color: var(--mut); }
-
-#ajuda {
-  position: fixed; left: 18px; bottom: 18px; z-index: 9; display: none;
+.joy-btn {
+  position: absolute; z-index: 10; width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(20, 28, 44, 0.9); border: 2px solid var(--borda);
+  color: var(--texto); font-weight: 700; cursor: pointer; touch-action: manipulation;
 }
-@media (max-width: 900px) {
-  #painel { width: 210px; font-size: 12px; }
+.joy-btn:active { border-color: var(--acento); }
+#joy-l1 { left: 158px; bottom: 92px; }
+#joy-r1 { left: 158px; bottom: 28px; }
+
+/* ---- timeline ---- */
+#timeline {
+  flex: none; display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: var(--painel); border-top: 1px solid var(--borda);
+  font-size: 13px; overflow-x: auto;
+}
+#timeline button, #timeline select {
+  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--borda);
+  background: #0f1522; color: var(--texto); cursor: pointer; flex: none;
+}
+#tl-rec.ativo { border-color: #ff4444; color: #ff4444; }
+#tl-play.tocando { border-color: var(--acento); color: var(--acento); }
+.onion { display: flex; gap: 6px; align-items: center; flex: none; color: var(--mut); }
+#tl-keys { display: flex; gap: 6px; overflow-x: auto; flex: 1; min-width: 60px; padding: 2px; }
+#tl-keys button { flex: none; font-size: 12px; padding: 4px 10px; }
+#tl-keys button.atual { border-color: var(--acento); }
+
+/* ---- telas estreitas (ex. iPhone 13: 390px) ---- */
+@media (max-width: 760px) {
+  #topo { font-size: 12px; padding: 6px 8px; gap: 6px; }
+  .vistas { display: none; }
+  #gamepad-status { display: none; }
+  #meio { flex-direction: column; }
+  #palco-wrap { flex: none; height: 44vh; }
+  #painel { width: auto; border-left: none; border-top: 1px solid var(--borda); flex: 1; min-height: 0; font-size: 12px; }
+  #joy-base { width: 84px; height: 84px; left: 10px; bottom: 10px; }
+  #joy-pino { width: 38px; height: 38px; margin: -19px 0 0 -19px; }
+  #joy-rotulo { display: none; }
+  #joy-l1 { left: 102px; bottom: 62px; }
+  #joy-r1 { left: 102px; bottom: 12px; }
+  .joy-btn { width: 42px; height: 42px; font-size: 12px; }
+  #timeline { font-size: 12px; gap: 6px; }
+  .etiqueta { font-size: 10px; padding: 2px 8px; }
 }

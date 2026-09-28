@@ -7,6 +7,7 @@ import { resolverIK2Ossos } from './rig/ik.js';
 import { mapearJoystickParaMovimento, fixar, proximoEixo, navegarLista, bordaSubida, moverNoEixo } from './controle/joystick.js';
 import { initJoystickVirtual } from './controle/virtual.js';
 import { lerGamepad } from './controle/gamepad.js';
+import { extrairPose, aplicarPose, amostrar, quadroAtual } from './anim/timeline.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('gl');
@@ -222,6 +223,74 @@ function lerPose() {
   } catch { $('msg').textContent = 'Falha ao ler pose.'; }
 }
 
+// Botoes na tela espelham L1/R1 do gamepad + fullscreen.
+function ciclarEixo() { estado.eixo = proximoEixo(estado.eixo); }
+function alternarModo() { estado.modo = estado.modo === 'selecao' ? 'mover' : 'selecao'; }
+$('joy-l1').addEventListener('click', ciclarEixo);
+$('joy-r1').addEventListener('click', alternarModo);
+$('btn-full').addEventListener('click', () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen().catch(() => {});
+});
+
+// ---------- Timeline: keys + play + fps + onion skin ----------
+const tl = { keys: [], playhead: 0, tocando: false, fps: 24, onion: false };
+
+function fantasma(cor) {
+  const g = grupo.clone(true);
+  g.traverse((o) => {
+    if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0.16, depthWrite: false }); o.castShadow = false; }
+  });
+  g.visible = false;
+  palco.scene.add(g);
+  const mapa = {};
+  g.traverse((o) => { if (o.isBone) mapa[o.name] = o; });
+  return { g, mapa };
+}
+const fantasmaAnt = fantasma(0xff5555);
+const fantasmaProx = fantasma(0x5599ff);
+
+function desenharKeys() {
+  const box = $('tl-keys');
+  box.innerHTML = '';
+  tl.keys.forEach((k, i) => {
+    const b = document.createElement('button');
+    b.textContent = `K${i + 1} ${k.t.toFixed(1)}s`;
+    b.addEventListener('click', () => { tl.playhead = k.t; aplicarPose(bones, k.pose); lerSlidersDaJunta(); });
+    box.appendChild(b);
+  });
+  $('tl-frame').textContent = `q${quadroAtual(tl.playhead, tl.fps)} · ${tl.playhead.toFixed(2)}s · ${tl.keys.length} keys`;
+}
+
+$('tl-rec').addEventListener('click', () => {
+  tl.keys.push({ t: tl.playhead, pose: extrairPose(bones) });
+  tl.keys.sort((a, b) => a.t - b.t);
+  desenharKeys();
+  $('msg').textContent = `Key salva em ${tl.playhead.toFixed(2)}s.`;
+});
+$('tl-play').addEventListener('click', () => {
+  tl.tocando = !tl.tocando;
+  $('tl-play').textContent = tl.tocando ? '⏸' : '▶';
+  $('tl-play').classList.toggle('tocando', tl.tocando);
+  if (tl.tocando && tl.keys.length > 1 && estado.animar) {
+    estado.animar = false; // marcha brigaria com as keys
+    $('animar').checked = false;
+    $('msg').textContent = 'Marcha pausada p/ tocar a timeline.';
+  }
+  if (tl.tocando && tl.keys.length < 2) { $('msg').textContent = 'Grave 2+ keys primeiro.'; tl.tocando = false; $('tl-play').textContent = '▶'; $('tl-play').classList.remove('tocando'); }
+});
+$('tl-fps').addEventListener('change', (e) => { tl.fps = parseInt(e.target.value, 10); desenharKeys(); });
+$('tl-onion').addEventListener('change', (e) => {
+  tl.onion = e.target.checked;
+  if (!tl.onion) { fantasmaAnt.g.visible = false; fantasmaProx.g.visible = false; }
+});
+$('tl-limpar').addEventListener('click', () => {
+  tl.keys = []; tl.playhead = 0; tl.tocando = false;
+  $('tl-play').textContent = '▶'; $('tl-play').classList.remove('tocando');
+  fantasmaAnt.g.visible = false; fantasmaProx.g.visible = false;
+  desenharKeys();
+});
+
 // Teclado: WASD move cintura, setas movem alvo selecionado, R = repouso.
 const teclas = new Set();
 window.addEventListener('keydown', (e) => {
@@ -248,8 +317,8 @@ function passo(dt) {
 
   // Gamepad direito: R1 alterna selecao/mover, L1 cicla o eixo, stick move.
   if (gp.conectado) {
-    if (bordaSubida(prevBotoes.l1, gp.l1)) estado.eixo = proximoEixo(estado.eixo);
-    if (bordaSubida(prevBotoes.r1, gp.r1)) estado.modo = estado.modo === 'selecao' ? 'mover' : 'selecao';
+    if (bordaSubida(prevBotoes.l1, gp.l1)) ciclarEixo();
+    if (bordaSubida(prevBotoes.r1, gp.r1)) alternarModo();
     prevBotoes.l1 = gp.l1; prevBotoes.r1 = gp.r1;
     estado.navCd -= dt;
     const bone = bones[estado.junta];
@@ -320,12 +389,28 @@ function passo(dt) {
     cin.position.y = BASE_CINTURA_Y + Math.abs(Math.sin(t)) * 0.03 - 0.01;
   }
 
+  // Timeline: play aplica keys; IK pausa p/ nao brigar com elas.
+  if (tl.tocando && tl.keys.length > 1) {
+    tl.playhead += dt;
+    const s = amostrar(tl.keys, tl.playhead);
+    if (s) aplicarPose(bones, s.pose);
+    $('tl-frame').textContent = `q${quadroAtual(tl.playhead, tl.fps)} · ${tl.playhead.toFixed(2)}s · ${tl.keys.length} keys`;
+  }
+  if (tl.onion && tl.keys.length > 1) {
+    const s = amostrar(tl.keys, tl.playhead);
+    if (s) {
+      aplicarPose(fantasmaAnt.mapa, s.anterior);
+      aplicarPose(fantasmaProx.mapa, s.proxima);
+      fantasmaAnt.g.visible = true; fantasmaProx.g.visible = true;
+    }
+  }
+
   // Anel da cintura segue a raiz no chao.
   controles.ctrl_cintura.position.set(cin.position.x, 0.02, cin.position.z);
 
   // Resolve IK depois de tudo (usa matrizes atualizadas).
   grupo.updateMatrixWorld(true);
-  for (const c of CHAINS) if (estado.ik[c.nome]) aplicarIK(c.nome);
+  if (!tl.tocando) for (const c of CHAINS) if (estado.ik[c.nome]) aplicarIK(c.nome);
   grupo.updateMatrixWorld(true);
 }
 

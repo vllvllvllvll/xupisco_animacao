@@ -7,59 +7,79 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <canvas id="gl"></canvas>
-
     <div id="topo">
       <b>XUPISCO_ANIMACAO</b>
-      <span>frente (esq) · cima (dir-sup) · lateral (dir-inf)</span>
+      <span class="vistas">frente (esq) · cima (dir-sup) · lateral (dir-inf)</span>
+      <button id="btn-full">fullscreen</button>
       <button id="btn-painel">painel −</button>
       <span id="gamepad-status">Gamepad: —</span>
     </div>
 
-    <div class="etiqueta" id="et-frente">FRENTE</div>
-    <div class="etiqueta" id="et-cima">CIMA</div>
-    <div class="etiqueta" id="et-lateral">LATERAL</div>
-
-    <div id="joy-rotulo">joystick — move a cintura</div>
-    <div id="joy-base"><div id="joy-pino"></div></div>
-
-    <div id="painel">
-      <h3>Marcha</h3>
-      <div class="linha"><label>Animar</label><input type="checkbox" id="animar" checked /></div>
-      <div class="linha"><label>Veloc.</label><input type="range" id="velocidade" min="0.2" max="2.5" step="0.1" value="1" /></div>
-      <div class="valor" id="gpad-modo">gamepad: — (R1 confirma · L1 eixo)</div>
-
-      <h3>Junta (FK)</h3>
-      <select id="junta"></select>
-      <div class="linha"><label>RX</label><input type="range" id="rx" min="-180" max="180" value="0" /></div>
-      <div class="linha"><label>RY</label><input type="range" id="ry" min="-180" max="180" value="0" /></div>
-      <div class="linha"><label>RZ</label><input type="range" id="rz" min="-180" max="180" value="0" /></div>
-      <div class="valor" id="val-junta">0° 0° 0°</div>
-
-      <h3>Alvo IK</h3>
-      <select id="alvo"></select>
-      <div class="linha"><label>X</label><input type="range" id="tx" min="-2" max="2" step="0.01" value="0" /></div>
-      <div class="linha"><label>Y</label><input type="range" id="ty" min="0" max="2.5" step="0.01" value="1" /></div>
-      <div class="linha"><label>Z</label><input type="range" id="tz" min="-2" max="2" step="0.01" value="0" /></div>
-      <div class="valor" id="val-alvo">0 0 0</div>
-
-      <h3>IK ligado</h3>
-      <div class="ik">
-        <label><input type="checkbox" id="ik-braco_E" checked /> braço E</label>
-        <label><input type="checkbox" id="ik-braco_D" checked /> braço D</label>
-        <label><input type="checkbox" id="ik-perna_E" checked /> perna E</label>
-        <label><input type="checkbox" id="ik-perna_D" checked /> perna D</label>
+    <div id="meio">
+      <div id="palco-wrap">
+        <canvas id="gl"></canvas>
+        <div class="etiqueta" id="et-frente">FRENTE</div>
+        <div class="etiqueta" id="et-cima">CIMA</div>
+        <div class="etiqueta" id="et-lateral">LATERAL</div>
+        <div id="joy-rotulo">joystick — move a cintura</div>
+        <button class="joy-btn" id="joy-l1">L1</button>
+        <div id="joy-base"><div id="joy-pino"></div></div>
+        <button class="joy-btn" id="joy-r1">R1</button>
       </div>
 
-      <h3>Poses</h3>
-      <button id="pose-repouso">Repouso (R)</button>
-      <button id="pose-t">Pose em T</button>
-      <button id="pose-sentar">Sentar</button>
-      <button id="pose-salvar">Salvar pose</button>
-      <button id="pose-ler">Restaurar pose</button>
-      <div id="msg"></div>
-      <h3>Teclas</h3>
-      <div id="msg2" style="color:#93a0b8;font-size:12px">WASD move · setas movem alvo · R repouso</div>
+      <div id="painel">
+        <h3>Marcha</h3>
+        <div class="linha"><label>Animar</label><input type="checkbox" id="animar" checked /></div>
+        <div class="linha"><label>Veloc.</label><input type="range" id="velocidade" min="0.2" max="2.5" step="0.1" value="1" /></div>
+        <div class="valor" id="gpad-modo">gamepad: — (R1 confirma · L1 eixo)</div>
+
+        <h3>Junta (FK)</h3>
+        <select id="junta"></select>
+        <div class="linha"><label>RX</label><input type="range" id="rx" min="-180" max="180" value="0" /></div>
+        <div class="linha"><label>RY</label><input type="range" id="ry" min="-180" max="180" value="0" /></div>
+        <div class="linha"><label>RZ</label><input type="range" id="rz" min="-180" max="180" value="0" /></div>
+        <div class="valor" id="val-junta">0° 0° 0°</div>
+
+        <h3>Alvo IK</h3>
+        <select id="alvo"></select>
+        <div class="linha"><label>X</label><input type="range" id="tx" min="-2" max="2" step="0.01" value="0" /></div>
+        <div class="linha"><label>Y</label><input type="range" id="ty" min="0" max="2.5" step="0.01" value="1" /></div>
+        <div class="linha"><label>Z</label><input type="range" id="tz" min="-2" max="2" step="0.01" value="0" /></div>
+        <div class="valor" id="val-alvo">0 0 0</div>
+
+        <h3>IK ligado</h3>
+        <div class="ik">
+          <label><input type="checkbox" id="ik-braco_E" checked /> braço E</label>
+          <label><input type="checkbox" id="ik-braco_D" checked /> braço D</label>
+          <label><input type="checkbox" id="ik-perna_E" checked /> perna E</label>
+          <label><input type="checkbox" id="ik-perna_D" checked /> perna D</label>
+        </div>
+
+        <h3>Poses</h3>
+        <button id="pose-repouso">Repouso (R)</button>
+        <button id="pose-t">Pose em T</button>
+        <button id="pose-sentar">Sentar</button>
+        <button id="pose-salvar">Salvar pose</button>
+        <button id="pose-ler">Restaurar pose</button>
+        <div id="msg"></div>
+        <h3>Teclas</h3>
+        <div id="msg2" style="color:#93a0b8;font-size:12px">WASD move · setas movem alvo · R repouso</div>
+      </div>
+    </div>
+
+    <div id="timeline">
+      <button id="tl-play">▶</button>
+      <button id="tl-rec">● key</button>
+      <select id="tl-fps">
+        <option value="12">12fps</option>
+        <option value="24" selected>24fps</option>
+        <option value="30">30fps</option>
+        <option value="60">60fps</option>
+      </select>
+      <label class="onion"><input type="checkbox" id="tl-onion" /> onion</label>
+      <span class="valor" id="tl-frame">q0 · 0.00s · 0 keys</span>
+      <div id="tl-keys"></div>
+      <button id="tl-limpar">limpar</button>
     </div>
 
     <script type="module" src="/src/main.js"></script>
