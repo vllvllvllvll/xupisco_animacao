@@ -8,7 +8,7 @@ export function initPalco(canvas) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x10131a);
+  scene.background = new THREE.Color(0xffffff);
 
   scene.add(new THREE.HemisphereLight(0xdfeaff, 0x1a1d24, 0.9));
   const sol = new THREE.DirectionalLight(0xffffff, 1.6);
@@ -22,12 +22,12 @@ export function initPalco(canvas) {
 
   const chao = new THREE.Mesh(
     new THREE.PlaneGeometry(12, 12),
-    new THREE.MeshStandardMaterial({ color: 0x1b2130, roughness: 0.95 }),
+    new THREE.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 0.95 }),
   );
   chao.rotation.x = -Math.PI / 2;
   chao.receiveShadow = true;
   scene.add(chao);
-  const grade = new THREE.GridHelper(12, 24, 0x3a4666, 0x242c44);
+  const grade = new THREE.GridHelper(12, 24, 0x999999, 0xcccccc);
   grade.position.y = 0.002;
   scene.add(grade);
   scene.add(new THREE.AxesHelper(0.6));

@@ -18,6 +18,7 @@ palco.scene.add(grupo);
 palco.scene.add(buildHelper());
 function buildHelper() {
   const h = new THREE.SkeletonHelper(bones.cintura);
+  h.material.color.set(0xff383c);
   return h;
 }
 
@@ -39,8 +40,8 @@ const BONES = listarBones();
 const prevBotoes = { l1: false, r1: false };
 
 // Linha do eixo ativo (aparece ao mover o bone com o analogico direito).
-const COR_EIXO = { x: 0xff4444, y: 0x44ff44, z: 0x4488ff };
-const linhaEixo = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0.6, COR_EIXO.x, 0.12, 0.06);
+const COR_EIXO = 0xff383c;
+const linhaEixo = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0.6, COR_EIXO, 0.12, 0.06);
 linhaEixo.visible = false;
 palco.scene.add(linhaEixo);
 const _posBone = new THREE.Vector3();
@@ -264,8 +265,8 @@ function fantasma(cor) {
   g.traverse((o) => { if (o.isBone) mapa[o.name] = o; });
   return { g, mapa };
 }
-const fantasmaAnt = fantasma(0xff5555);
-const fantasmaProx = fantasma(0x5599ff);
+const fantasmaAnt = fantasma(0xff383c);
+const fantasmaProx = fantasma(0x8f1414);
 
 function desenharKeys() {
   const box = $('tl-keys');
@@ -320,6 +321,9 @@ window.addEventListener('keyup', (e) => teclas.delete(e.key.toLowerCase()));
 initJoystickVirtual($('joy-base'), $('joy-pino'), (j) => { estado.joy = j; });
 initJoystickVirtual($('joy2-base'), $('joy2-pino'), (j) => { estado.joyR = j; });
 
+// Hook p/ teste E2E (le estado/bones sem expor no UI).
+window.__xup = { estado, bones, BONES };
+
 // ---------- Loop ----------
 const relogio = new THREE.Clock();
 const alvoCameras = new THREE.Vector3(0, 1, 0);
@@ -361,7 +365,6 @@ function passo(dt) {
         _dirEixo.set(0, 0, 0); _dirEixo[estado.eixo] = 1;
         linhaEixo.position.copy(_posBone);
         linhaEixo.setDirection(_dirEixo.applyQuaternion(_quatBone));
-        linhaEixo.setColor(new THREE.Color(COR_EIXO[estado.eixo]));
       }
     }
     $('gpad-modo').textContent = `gamepad: ${estado.modo} · ${estado.junta} · eixo ${estado.eixo.toUpperCase()}`;
@@ -406,7 +409,10 @@ function passo(dt) {
     controles.alvo_pe_D.position.y = Math.max(0.04, BASE_ALVOS.alvo_pe_D.y + liftD - 0.03);
     controles.alvo_mao_E.position.z = BASE_ALVOS.alvo_mao_E.z - bal * 0.7;
     controles.alvo_mao_D.position.z = BASE_ALVOS.alvo_mao_D.z + bal * 0.7;
-    cin.position.y = BASE_CINTURA_Y + Math.abs(Math.sin(t)) * 0.03 - 0.01;
+    // Marcha nao briga com o Y quando o usuario move a cintura no modo mover.
+    if (!(estado.modo === 'mover' && estado.junta === 'cintura')) {
+      cin.position.y = BASE_CINTURA_Y + Math.abs(Math.sin(t)) * 0.03 - 0.01;
+    }
   }
 
   // Timeline: play aplica keys; IK pausa p/ nao brigar com elas.

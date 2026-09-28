@@ -1,10 +1,10 @@
 :root {
-  --fundo: #0d1117;
-  --painel: #101624;
-  --texto: #e8edf5;
-  --mut: #93a0b8;
-  --acento: #ffc93c;
-  --borda: #2a3550;
+  --fundo: #ffffff;
+  --painel: #ececec;
+  --texto: #141414;
+  --mut: #5a5a5a;
+  --acento: #ff383c;
+  --borda: #c4c4c4;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto); font-family: system-ui, Segoe UI, Roboto, sans-serif; overflow: hidden; }
@@ -17,7 +17,7 @@ body { display: flex; flex-direction: column; }
   font-size: 14px;
 }
 #topo b { color: var(--acento); }
-#topo button { width: auto; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--borda); background: #0f1522; color: var(--texto); cursor: pointer; }
+#topo button { width: auto; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--borda); background: #d9d9d9; color: var(--texto); cursor: pointer; }
 #gamepad-status { margin-left: auto; color: var(--mut); font-size: 12px; }
 
 /* ---- meio: palco + painel encaixados, nada flutua ---- */
@@ -42,15 +42,16 @@ body { display: flex; flex-direction: column; }
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 #btn-hamb {
-  position: absolute; z-index: 11; right: 10px; top: 10px;
+  position: absolute; z-index: 13; right: 10px; top: 10px;
   width: 39px; height: 38px; background: #d9d9d9; border: none; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
 }
 #btn-hamb span { display: block; width: 24px; height: 3px; background: #ff383c; }
 
 #painel {
-  position: absolute; z-index: 12; top: 0; right: 0; bottom: 0; width: 232px;
-  overflow-y: auto; background: var(--painel); border-left: 1px solid var(--borda);
+  position: absolute; z-index: 12; top: 58px; right: 10px;
+  width: 232px; max-height: calc(100% - 76px);
+  overflow-y: auto; background: var(--painel); border: 1px solid var(--borda);
   padding: 12px; font-size: 13px;
 }
 #painel.fechado { display: none; }
@@ -62,7 +63,7 @@ body { display: flex; flex-direction: column; }
 }
 #bones-lista button.atual { background: #2a1414; }
 #painel h3 { margin: 10px 0 6px; font-size: 12px; text-transform: uppercase; color: var(--mut); }
-#painel select, #painel button { width: 100%; margin: 3px 0; padding: 6px; border-radius: 8px; border: 1px solid var(--borda); background: #0f1522; color: var(--texto); }
+#painel select, #painel button { width: 100%; margin: 3px 0; padding: 6px; border-radius: 8px; border: 1px solid var(--borda); background: #d9d9d9; color: var(--texto); }
 #painel button { cursor: pointer; }
 #painel button:hover { border-color: var(--acento); }
 .linha { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
@@ -79,19 +80,19 @@ body { display: flex; flex-direction: column; }
 #joy-base {
   position: absolute; left: 18px; bottom: 18px; z-index: 10;
   width: 128px; height: 128px; border-radius: 50%;
-  background: rgba(20, 28, 44, 0.8); border: 2px solid var(--borda);
+  background: rgba(217, 217, 217, 0.85); border: 2px solid var(--borda);
   touch-action: none; cursor: grab;
 }
 #joy2-base {
   position: absolute; right: 18px; bottom: 18px; z-index: 10;
   width: 128px; height: 128px; border-radius: 50%;
-  background: rgba(20, 28, 44, 0.8); border: 2px solid var(--borda);
+  background: rgba(217, 217, 217, 0.85); border: 2px solid var(--borda);
   touch-action: none; cursor: grab;
 }
 #joy-pino, #joy2-pino {
   position: absolute; left: 50%; top: 50%; width: 56px; height: 56px;
   margin: -28px 0 0 -28px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ffe08a, var(--acento));
+  background: radial-gradient(circle at 35% 35%, #ff7a7e, var(--acento));
   pointer-events: none;
 }
 .joy-btn {
@@ -111,7 +112,7 @@ body { display: flex; flex-direction: column; }
 }
 #timeline button, #timeline select {
   padding: 6px 12px; border-radius: 8px; border: 1px solid var(--borda);
-  background: #0f1522; color: var(--texto); cursor: pointer; flex: none;
+  background: #d9d9d9; color: var(--texto); cursor: pointer; flex: none;
 }
 #tl-rec.ativo { border-color: #ff4444; color: #ff4444; }
 #tl-play.tocando { border-color: var(--acento); color: var(--acento); }

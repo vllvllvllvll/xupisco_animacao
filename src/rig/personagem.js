@@ -7,11 +7,12 @@ import { CADEIAS_IK } from './hierarquia.js';
  */
 
 const CORES = {
-  cintura: 0xffc93c, barriga: 0xff9f45, peito: 0xee5253,
-  pescoco: 0xfeca57, cabeca: 0xf9ca24,
-  ombro: 0x54a0ff, braco: 0x5f27cd, antebraco: 0x48dbfb, mao: 0x1dd1a1,
-  coxa: 0xff6b81, perna: 0xa55eea, pe: 0x26de81,
+  cintura: 0xbdbdbd, barriga: 0xc9c9c9, peito: 0xadadad,
+  pescoco: 0xd0d0d0, cabeca: 0xc2c2c2,
+  ombro: 0xa8a8a8, braco: 0x9d9d9d, antebraco: 0xb5b5b5, mao: 0x8f8f8f,
+  coxa: 0xababab, perna: 0x9a9a9a, pe: 0x868686,
 };
+const VERMELHO = 0xff383c; // controladores: vermelho do prototipo Figma
 
 function mat(cor) {
   return new THREE.MeshStandardMaterial({ color: cor, roughness: 0.55, metalness: 0.08 });
@@ -141,11 +142,11 @@ export function buildPersonagem() {
   grupo.add(cintura);
 
   // ---- Controladores (curvas/primitivas geometricas) ----
-  const ctrlCintura = anelControle(0xffc93c, 0.62);
+  const ctrlCintura = anelControle(VERMELHO, 0.62);
   ctrlCintura.name = 'ctrl_cintura';
-  const ctrlBarriga = anelControle(0xff9f45, 0.34, 0.016);
-  const ctrlPeito = anelControle(0xee5253, 0.40, 0.016);
-  const ctrlCabeca = anelControle(0xf9ca24, 0.24, 0.014);
+  const ctrlBarriga = anelControle(VERMELHO, 0.34, 0.016);
+  const ctrlPeito = anelControle(VERMELHO, 0.40, 0.016);
+  const ctrlCabeca = anelControle(VERMELHO, 0.24, 0.014);
   ctrlCabeca.rotation.x = 0;
   controles.ctrl_cintura = ctrlCintura;
   controles.ctrl_barriga = ctrlBarriga;
@@ -167,8 +168,8 @@ export function buildPersonagem() {
 
   grupo.updateMatrixWorld(true);
   const defs = [
-    ['alvo_mao_E', 0x1dd1a1], ['alvo_mao_D', 0x1dd1a1],
-    ['alvo_pe_E', 0x26de81], ['alvo_pe_D', 0x26de81],
+    ['alvo_mao_E', VERMELHO], ['alvo_mao_D', VERMELHO],
+    ['alvo_pe_E', VERMELHO], ['alvo_pe_D', VERMELHO],
   ];
   for (const [nome, cor] of defs) {
     const a = alvoControle(cor);
@@ -177,8 +178,8 @@ export function buildPersonagem() {
     controles[nome] = a;
   }
   const polos = [
-    ['polo_cotovelo_E', 0x54a0ff], ['polo_cotovelo_D', 0x54a0ff],
-    ['polo_joelho_E', 0xa55eea], ['polo_joelho_D', 0xa55eea],
+    ['polo_cotovelo_E', VERMELHO], ['polo_cotovelo_D', VERMELHO],
+    ['polo_joelho_E', VERMELHO], ['polo_joelho_D', VERMELHO],
   ];
   for (const [nome, cor] of polos) {
     const p = poloControle(cor);
