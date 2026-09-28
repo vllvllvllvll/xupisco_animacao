@@ -28,4 +28,10 @@ describe('wiring UI (ids do HTML x JS)', () => {
     const closes = (html.match(/<\/div>/g) || []).length;
     assert.equal(opens, closes, `divs: ${opens} abrem, ${closes} fecham`);
   });
+
+  it('drawer usa details colapsaveis (lista curta, R1 livre)', () => {
+    for (const s of ['Bones', 'Junta (FK)', 'Alvo IK', 'IK ligado', 'Poses']) {
+      assert.ok(html.includes(`<summary>${s}</summary>`), `falta details ${s}`);
+    }
+  });
 });

@@ -30,44 +30,56 @@
         <div id="joy2-base"><div id="joy2-pino"></div></div>
 
         <div id="painel" class="fechado">
-          <h3>Bones</h3>
-          <div id="bones-lista"></div>
+          <details open>
+            <summary>Bones</summary>
+            <div id="bones-lista"></div>
+          </details>
         <h3>Marcha</h3>
         <div class="linha"><label>Animar</label><input type="checkbox" id="animar" checked /></div>
         <div class="linha"><label>Veloc.</label><input type="range" id="velocidade" min="0.2" max="2.5" step="0.1" value="1" /></div>
         <div class="valor" id="gpad-modo">gamepad: — (R1 confirma · L1 eixo)</div>
 
-        <h3>Junta (FK)</h3>
-        <select id="junta"></select>
-        <div class="linha"><label>RX</label><input type="range" id="rx" min="-180" max="180" value="0" /></div>
-        <div class="linha"><label>RY</label><input type="range" id="ry" min="-180" max="180" value="0" /></div>
-        <div class="linha"><label>RZ</label><input type="range" id="rz" min="-180" max="180" value="0" /></div>
-        <div class="valor" id="val-junta">0° 0° 0°</div>
+        <details>
+          <summary>Junta (FK)</summary>
+          <select id="junta"></select>
+          <div class="linha"><label>RX</label><input type="range" id="rx" min="-180" max="180" value="0" /></div>
+          <div class="linha"><label>RY</label><input type="range" id="ry" min="-180" max="180" value="0" /></div>
+          <div class="linha"><label>RZ</label><input type="range" id="rz" min="-180" max="180" value="0" /></div>
+          <div class="valor" id="val-junta">0° 0° 0°</div>
+        </details>
 
-        <h3>Alvo IK</h3>
-        <select id="alvo"></select>
-        <div class="linha"><label>X</label><input type="range" id="tx" min="-2" max="2" step="0.01" value="0" /></div>
-        <div class="linha"><label>Y</label><input type="range" id="ty" min="0" max="2.5" step="0.01" value="1" /></div>
-        <div class="linha"><label>Z</label><input type="range" id="tz" min="-2" max="2" step="0.01" value="0" /></div>
-        <div class="valor" id="val-alvo">0 0 0</div>
+        <details>
+          <summary>Alvo IK</summary>
+          <select id="alvo"></select>
+          <div class="linha"><label>X</label><input type="range" id="tx" min="-2" max="2" step="0.01" value="0" /></div>
+          <div class="linha"><label>Y</label><input type="range" id="ty" min="0" max="2.5" step="0.01" value="1" /></div>
+          <div class="linha"><label>Z</label><input type="range" id="tz" min="-2" max="2" step="0.01" value="0" /></div>
+          <div class="valor" id="val-alvo">0 0 0</div>
+        </details>
 
-        <h3>IK ligado</h3>
-        <div class="ik">
-          <label><input type="checkbox" id="ik-braco_E" checked /> braço E</label>
-          <label><input type="checkbox" id="ik-braco_D" checked /> braço D</label>
-          <label><input type="checkbox" id="ik-perna_E" checked /> perna E</label>
-          <label><input type="checkbox" id="ik-perna_D" checked /> perna D</label>
-        </div>
+        <details>
+          <summary>IK ligado</summary>
+          <div class="ik">
+            <label><input type="checkbox" id="ik-braco_E" checked /> braço E</label>
+            <label><input type="checkbox" id="ik-braco_D" checked /> braço D</label>
+            <label><input type="checkbox" id="ik-perna_E" checked /> perna E</label>
+            <label><input type="checkbox" id="ik-perna_D" checked /> perna D</label>
+          </div>
+        </details>
 
-        <h3>Poses</h3>
-        <button id="pose-repouso">Repouso (R)</button>
-        <button id="pose-t">Pose em T</button>
-        <button id="pose-sentar">Sentar</button>
-        <button id="pose-salvar">Salvar pose</button>
-        <button id="pose-ler">Restaurar pose</button>
-        <div id="msg"></div>
-        <h3>Teclas</h3>
-        <div id="msg2" style="color:#5a5a5a;font-size:12px">WASD move · setas movem alvo · R repouso</div>
+        <details>
+          <summary>Poses</summary>
+          <button id="pose-repouso">Repouso (R)</button>
+          <button id="pose-t">Pose em T</button>
+          <button id="pose-sentar">Sentar</button>
+          <button id="pose-salvar">Salvar pose</button>
+          <button id="pose-ler">Restaurar pose</button>
+          <div id="msg"></div>
+        </details>
+        <details>
+          <summary>Teclas</summary>
+          <div id="msg2" style="color:#5a5a5a;font-size:12px">WASD move · setas movem alvo · R repouso</div>
+        </details>
       </div>
     </div>
   </div>
