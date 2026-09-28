@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { initPalco } from './cena/palco.js';
 import { calcularViewports } from './cena/viewports.js';
 import { buildPersonagem } from './rig/personagem.js';
-import { listarBones } from './rig/hierarquia.js';
+import { listarBones, mapaDePais } from './rig/hierarquia.js';
 import { resolverIK2Ossos } from './rig/ik.js';
 import { mapearJoystickParaMovimento, fixar, proximoEixo, navegarLista, bordaSubida, moverNoEixo } from './controle/joystick.js';
 import { initJoystickVirtual } from './controle/virtual.js';
@@ -29,6 +29,7 @@ const estado = {
   animar: true,
   velocidade: 1.0,
   joy: { x: 0, y: 0, intensidade: 0 },
+  joyR: { x: 0, y: 0, intensidade: 0 },
   tempo: 0,
   modo: 'selecao', // gamepad: 'selecao' (R1 confirma) | 'mover' (R1 volta)
   eixo: 'x', // L1 cicla x → y → z
@@ -122,8 +123,27 @@ for (const n of Object.keys(controles)) {
   if (n === estado.alvo) o.selected = true;
   selAlvo.appendChild(o);
 }
-selJunta.addEventListener('change', () => { estado.junta = selJunta.value; lerSlidersDaJunta(); });
+selJunta.addEventListener('change', () => selecionarJunta(selJunta.value));
 selAlvo.addEventListener('change', () => { estado.alvo = selAlvo.value; lerSlidersDoAlvo(); });
+
+// Lista de bones hierarquizada no drawer (indent = profundidade).
+const MAPA_PAIS = mapaDePais();
+const profundidade = (n) => (MAPA_PAIS[n] ? 1 + profundidade(MAPA_PAIS[n]) : 0);
+const botoesBones = {};
+for (const n of BONES) {
+  const b = document.createElement('button');
+  b.textContent = n;
+  b.style.paddingLeft = `${4 + profundidade(n) * 12}px`;
+  b.addEventListener('click', () => selecionarJunta(n));
+  $('bones-lista').appendChild(b);
+  botoesBones[n] = b;
+}
+function selecionarJunta(nome) {
+  estado.junta = nome;
+  selJunta.value = nome;
+  for (const [n, b] of Object.entries(botoesBones)) b.classList.toggle('atual', n === nome);
+  lerSlidersDaJunta();
+}
 
 const GRAUS = Math.PI / 180;
 function lerSlidersDaJunta() {
@@ -170,11 +190,8 @@ $('pose-t').addEventListener('click', poseT);
 $('pose-sentar').addEventListener('click', poseSentar);
 $('pose-salvar').addEventListener('click', salvarPose);
 $('pose-ler').addEventListener('click', lerPose);
-$('btn-painel').addEventListener('click', () => {
-  const p = $('painel');
-  p.classList.toggle('fechado');
-  $('btn-painel').textContent = p.classList.contains('fechado') ? 'painel +' : 'painel −';
-});
+$('eixo-ind').addEventListener('click', ciclarEixo);
+$('btn-hamb').addEventListener('click', () => $('painel').classList.toggle('fechado'));
 
 function poseRepouso() {
   for (const n of listarBones()) bones[n].rotation.set(0, 0, 0);
@@ -299,8 +316,9 @@ window.addEventListener('keydown', (e) => {
 });
 window.addEventListener('keyup', (e) => teclas.delete(e.key.toLowerCase()));
 
-// Joystick virtual + gamepad.
+// Joysticks na tela: esquerdo = cintura, direito = bone (espelha o gamepad).
 initJoystickVirtual($('joy-base'), $('joy-pino'), (j) => { estado.joy = j; });
+initJoystickVirtual($('joy2-base'), $('joy2-pino'), (j) => { estado.joyR = j; });
 
 // ---------- Loop ----------
 const relogio = new THREE.Clock();
@@ -315,24 +333,25 @@ function passo(dt) {
   $('gamepad-status').textContent = gp.conectado ? `Gamepad: ${gp.id.slice(0, 28)}` : 'Gamepad: nenhum (conecte e aperte um botao)';
   if (Math.hypot(jx, jy) < 0.05 && gp.conectado) { jx = gp.stick.x; jy = gp.stick.y; }
 
-  // Gamepad direito: R1 alterna selecao/mover, L1 cicla o eixo, stick move.
+  // Stick direito (gamepad ou toque): R1 alterna selecao/mover, L1 cicla o eixo.
+  const sr = gp.conectado && gp.stickR.intensidade > 0.05 ? gp.stickR : estado.joyR;
   if (gp.conectado) {
     if (bordaSubida(prevBotoes.l1, gp.l1)) ciclarEixo();
     if (bordaSubida(prevBotoes.r1, gp.r1)) alternarModo();
     prevBotoes.l1 = gp.l1; prevBotoes.r1 = gp.r1;
+  }
+  if (gp.conectado || sr.intensidade > 0.05) {
     estado.navCd -= dt;
     const bone = bones[estado.junta];
     if (estado.modo === 'selecao') {
       linhaEixo.visible = false;
-      const dir = gp.stickR.y > 0.5 ? -1 : gp.stickR.y < -0.5 ? 1 : 0;
+      const dir = sr.y > 0.5 ? -1 : sr.y < -0.5 ? 1 : 0;
       if (dir !== 0 && estado.navCd <= 0) {
         estado.navCd = 0.25;
-        estado.junta = BONES[navegarLista(BONES.indexOf(estado.junta), dir, BONES.length)];
-        selJunta.value = estado.junta;
-        lerSlidersDaJunta();
+        selecionarJunta(BONES[navegarLista(BONES.indexOf(estado.junta), dir, BONES.length)]);
       }
     } else {
-      const s = estado.eixo === 'y' ? gp.stickR.y : gp.stickR.x;
+      const s = estado.eixo === 'y' ? sr.y : sr.x;
       bone.position[estado.eixo] = moverNoEixo(bone.position[estado.eixo], s, { vel: 1.5, dt });
       if (estado.junta === 'cintura') bone.position.y = fixar(bone.position.y, 0.2, 2);
       linhaEixo.visible = Math.abs(s) > 0.05;
@@ -348,8 +367,9 @@ function passo(dt) {
     $('gpad-modo').textContent = `gamepad: ${estado.modo} · ${estado.junta} · eixo ${estado.eixo.toUpperCase()}`;
   } else {
     linhaEixo.visible = false;
-    $('gpad-modo').textContent = 'gamepad: — (R1 confirma · L1 eixo)';
+    $('gpad-modo').textContent = 'R1 confirma · L1 eixo';
   }
+  $('eixo-ind').textContent = estado.eixo.toUpperCase();
   if (teclas.has('w')) jy += 1; if (teclas.has('s')) jy -= 1;
   if (teclas.has('a')) jx -= 1; if (teclas.has('d')) jx += 1;
   jx = Math.max(-1, Math.min(1, jx)); jy = Math.max(-1, Math.min(1, jy));
@@ -426,6 +446,6 @@ function quadro() {
 }
 
 poseRepouso();
-lerSlidersDaJunta();
+selecionarJunta(estado.junta);
 lerSlidersDoAlvo();
 quadro();

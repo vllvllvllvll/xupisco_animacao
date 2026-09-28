@@ -22,4 +22,10 @@ describe('wiring UI (ids do HTML x JS)', () => {
       assert.ok(html.includes(`id="ik-${nome}"`), `falta ik-${nome}`);
     }
   });
+
+  it('divs do HTML balanceadas (layout docked quebra se faltar fechamento)', () => {
+    const opens = (html.match(/<div\b/g) || []).length;
+    const closes = (html.match(/<\/div>/g) || []).length;
+    assert.equal(opens, closes, `divs: ${opens} abrem, ${closes} fecham`);
+  });
 });

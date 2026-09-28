@@ -26,20 +26,41 @@ body { display: flex; flex-direction: column; }
 #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 .etiqueta {
-  position: absolute; z-index: 5; font-size: 12px; letter-spacing: 0.08em;
-  background: rgba(0, 0, 0, 0.55); border: 1px solid var(--borda);
-  padding: 4px 10px; border-radius: 999px; pointer-events: none;
+  position: absolute; z-index: 5; font: 12px ui-monospace, "Intel One Mono", Menlo, monospace;
+  background: #d9d9d9; color: #000;
+  padding: 2px 0; width: 99px; text-align: center; pointer-events: none;
 }
-#et-frente { left: 12px; top: 8px; }
-#et-cima { left: calc(50% + 12px); top: 8px; }
-#et-lateral { left: calc(50% + 12px); top: calc(50% + 8px); }
+#et-frente { left: 0; bottom: 0; }
+#et-cima { left: 50%; bottom: 50%; }
+#et-lateral { left: 50%; bottom: 0; }
+
+/* indicador de eixo (vermelho, mono) + hamburger */
+#eixo-ind {
+  position: absolute; z-index: 10; left: calc(50% - 52px); top: 10px;
+  width: 40px; height: 40px; background: #d9d9d9; color: #ff383c;
+  font: 32px ui-monospace, "Intel One Mono", Menlo, monospace;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+#btn-hamb {
+  position: absolute; z-index: 11; right: 10px; top: 10px;
+  width: 39px; height: 38px; background: #d9d9d9; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+}
+#btn-hamb span { display: block; width: 24px; height: 3px; background: #ff383c; }
 
 #painel {
-  flex: none; width: 272px; overflow-y: auto;
-  background: var(--painel); border-left: 1px solid var(--borda);
+  position: absolute; z-index: 12; top: 0; right: 0; bottom: 0; width: 232px;
+  overflow-y: auto; background: var(--painel); border-left: 1px solid var(--borda);
   padding: 12px; font-size: 13px;
 }
 #painel.fechado { display: none; }
+#bones-lista { display: flex; flex-direction: column; }
+#bones-lista button {
+  background: none; border: none; text-align: left; cursor: pointer;
+  font: 12px ui-monospace, "Intel One Mono", Menlo, monospace; color: #ff383c;
+  padding: 2px 4px; margin: 0; width: 100%;
+}
+#bones-lista button.atual { background: #2a1414; }
 #painel h3 { margin: 10px 0 6px; font-size: 12px; text-transform: uppercase; color: var(--mut); }
 #painel select, #painel button { width: 100%; margin: 3px 0; padding: 6px; border-radius: 8px; border: 1px solid var(--borda); background: #0f1522; color: var(--texto); }
 #painel button { cursor: pointer; }
@@ -52,28 +73,35 @@ body { display: flex; flex-direction: column; }
 .ik label { display: flex; gap: 6px; align-items: center; }
 #msg { min-height: 18px; color: var(--mut); font-size: 12px; }
 
-/* ---- joystick + botoes L1/R1 ---- */
+/* ---- joysticks + L1/R1 (pills cinzas como no Figma) ---- */
 #joy-rotulo { position: absolute; left: 18px; bottom: 152px; z-index: 10; font-size: 12px; color: var(--mut); pointer-events: none; }
+#joy-rotulo2 { position: absolute; right: 18px; bottom: 152px; z-index: 10; font-size: 12px; color: var(--mut); pointer-events: none; }
 #joy-base {
   position: absolute; left: 18px; bottom: 18px; z-index: 10;
   width: 128px; height: 128px; border-radius: 50%;
   background: rgba(20, 28, 44, 0.8); border: 2px solid var(--borda);
   touch-action: none; cursor: grab;
 }
-#joy-pino {
+#joy2-base {
+  position: absolute; right: 18px; bottom: 18px; z-index: 10;
+  width: 128px; height: 128px; border-radius: 50%;
+  background: rgba(20, 28, 44, 0.8); border: 2px solid var(--borda);
+  touch-action: none; cursor: grab;
+}
+#joy-pino, #joy2-pino {
   position: absolute; left: 50%; top: 50%; width: 56px; height: 56px;
   margin: -28px 0 0 -28px; border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #ffe08a, var(--acento));
   pointer-events: none;
 }
 .joy-btn {
-  position: absolute; z-index: 10; width: 52px; height: 52px; border-radius: 50%;
-  background: rgba(20, 28, 44, 0.9); border: 2px solid var(--borda);
-  color: var(--texto); font-weight: 700; cursor: pointer; touch-action: manipulation;
+  position: absolute; z-index: 10; width: 119px; height: 22px;
+  background: #d9d9d9; color: #000; border: none; border-radius: 3px;
+  font: 12px ui-monospace, Menlo, monospace; cursor: pointer; touch-action: manipulation;
 }
-.joy-btn:active { border-color: var(--acento); }
-#joy-l1 { left: 158px; bottom: 92px; }
-#joy-r1 { left: 158px; bottom: 28px; }
+.joy-btn:active { outline: 2px solid var(--acento); }
+#joy-l1 { left: 24px; bottom: 158px; }
+#joy-r1 { right: 24px; bottom: 158px; }
 
 /* ---- timeline ---- */
 #timeline {
@@ -99,13 +127,15 @@ body { display: flex; flex-direction: column; }
   #gamepad-status { display: none; }
   #meio { flex-direction: column; }
   #palco-wrap { flex: none; height: 44vh; }
-  #painel { width: auto; border-left: none; border-top: 1px solid var(--borda); flex: 1; min-height: 0; font-size: 12px; }
-  #joy-base { width: 84px; height: 84px; left: 10px; bottom: 10px; }
-  #joy-pino { width: 38px; height: 38px; margin: -19px 0 0 -19px; }
-  #joy-rotulo { display: none; }
-  #joy-l1 { left: 102px; bottom: 62px; }
-  #joy-r1 { left: 102px; bottom: 12px; }
-  .joy-btn { width: 42px; height: 42px; font-size: 12px; }
+  #painel { width: 200px; font-size: 12px; }
+  #joy-base, #joy2-base { width: 84px; height: 84px; bottom: 10px; }
+  #joy-base { left: 10px; }
+  #joy2-base { right: 10px; }
+  #joy-pino, #joy2-pino { width: 38px; height: 38px; margin: -19px 0 0 -19px; }
+  #joy-rotulo, #joy-rotulo2 { display: none; }
+  #joy-l1 { left: 8px; bottom: 104px; width: 88px; }
+  #joy-r1 { right: 8px; bottom: 104px; width: 88px; }
   #timeline { font-size: 12px; gap: 6px; }
-  .etiqueta { font-size: 10px; padding: 2px 8px; }
+  .etiqueta { font-size: 10px; width: 70px; }
+  #eixo-ind { width: 32px; height: 32px; font-size: 24px; left: calc(50% - 42px); }
 }

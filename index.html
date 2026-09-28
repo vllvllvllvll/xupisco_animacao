@@ -11,23 +11,27 @@
       <b>XUPISCO_ANIMACAO</b>
       <span class="vistas">frente (esq) · cima (dir-sup) · lateral (dir-inf)</span>
       <button id="btn-full">fullscreen</button>
-      <button id="btn-painel">painel −</button>
       <span id="gamepad-status">Gamepad: —</span>
     </div>
 
     <div id="meio">
       <div id="palco-wrap">
         <canvas id="gl"></canvas>
-        <div class="etiqueta" id="et-frente">FRENTE</div>
-        <div class="etiqueta" id="et-cima">CIMA</div>
-        <div class="etiqueta" id="et-lateral">LATERAL</div>
-        <div id="joy-rotulo">joystick — move a cintura</div>
+        <div class="etiqueta" id="et-frente">Frontal</div>
+        <div class="etiqueta" id="et-cima">Superior</div>
+        <div class="etiqueta" id="et-lateral">Lateral</div>
+        <div id="eixo-ind" title="eixo ativo (L1 muda)">X</div>
+        <button id="btn-hamb" title="menu"><span></span><span></span><span></span></button>
+        <div id="joy-rotulo">cintura</div>
         <button class="joy-btn" id="joy-l1">L1</button>
         <div id="joy-base"><div id="joy-pino"></div></div>
+        <div id="joy-rotulo2">bone</div>
         <button class="joy-btn" id="joy-r1">R1</button>
-      </div>
+        <div id="joy2-base"><div id="joy2-pino"></div></div>
 
-      <div id="painel">
+        <div id="painel" class="fechado">
+          <h3>Bones</h3>
+          <div id="bones-lista"></div>
         <h3>Marcha</h3>
         <div class="linha"><label>Animar</label><input type="checkbox" id="animar" checked /></div>
         <div class="linha"><label>Veloc.</label><input type="range" id="velocidade" min="0.2" max="2.5" step="0.1" value="1" /></div>
@@ -66,6 +70,7 @@
         <div id="msg2" style="color:#93a0b8;font-size:12px">WASD move · setas movem alvo · R repouso</div>
       </div>
     </div>
+  </div>
 
     <div id="timeline">
       <button id="tl-play">▶</button>
