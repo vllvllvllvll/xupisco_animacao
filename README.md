@@ -1,4 +1,4 @@
-# Chupisco X Animação
+# Xupisco Animação
 
 Web app Three.js: personagem rigado com nomenclatura em português, painel de 3 câmeras
 (frente / cima / lateral), joystick virtual na tela + Gamepad API real.

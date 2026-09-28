@@ -1,5 +1,5 @@
 {
-  "name": "chupisco-x-animacao",
+  "name": "xupisco-animacao",
   "version": "0.1.0",
   "description": "Web app Three.js: personagem rigado (meshes + bones + controladores), 3 cameras (frente/cima/lateral), joystick virtual + Gamepad API",
   "type": "module",

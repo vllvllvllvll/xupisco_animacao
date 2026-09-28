@@ -190,12 +190,12 @@ function salvarPose() {
     const b = bones[n];
     pose[n] = { r: [b.rotation.x, b.rotation.y, b.rotation.z], p: b === bones.cintura ? [b.position.x, b.position.y, b.position.z] : undefined };
   }
-  localStorage.setItem('chupisco_pose', JSON.stringify(pose));
+  localStorage.setItem('xupisco_pose', JSON.stringify(pose));
   $('msg').textContent = 'Pose salva no navegador.';
 }
 function lerPose() {
   try {
-    const pose = JSON.parse(localStorage.getItem('chupisco_pose'));
+    const pose = JSON.parse(localStorage.getItem('xupisco_pose'));
     if (!pose) { $('msg').textContent = 'Nenhuma pose salva.'; return; }
     for (const n of Object.keys(pose)) {
       if (!bones[n]) continue;

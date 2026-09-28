@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CADEIAS_IK } from './hierarquia.js';
 
 /**
- * Constroi o personagem Chupisco: bones (THREE.Bone) + meshes + controladores.
+ * Constroi o personagem Xupisco: bones (THREE.Bone) + meshes + controladores.
  * Nomenclatura 100% em portugues. A cintura e a raiz / controlador principal.
  */
 
@@ -72,7 +72,7 @@ function poloControle(cor) {
 
 export function buildPersonagem() {
   const grupo = new THREE.Group();
-  grupo.name = 'chupisco';
+  grupo.name = 'xupisco';
   const bones = {};
   const meshes = {};
   const controles = {};
