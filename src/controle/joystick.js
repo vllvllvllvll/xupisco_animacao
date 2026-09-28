@@ -44,3 +44,23 @@ export function normalizarEixoGamepad(n) {
   if (!Number.isFinite(n)) return 0;
   return fixar(n, -1, 1);
 }
+
+/** L1: cicla o eixo ativo x → y → z. */
+export function proximoEixo(eixo) {
+  return eixo === 'x' ? 'y' : eixo === 'y' ? 'z' : 'x';
+}
+
+/** Analógico na lista de bones (volta ao início/fim). */
+export function navegarLista(indice, direcao, tamanho) {
+  return ((indice + direcao) % tamanho + tamanho) % tamanho;
+}
+
+/** Botoes L1/R1 disparam na borda de subida (segurar nao repete). */
+export function bordaSubida(antes, agora) {
+  return agora && !antes;
+}
+
+/** Move o bone no eixo ativo, com clamp. */
+export function moverNoEixo(valor, stick, { vel = 1.5, dt = 1 / 60, min = -2, max = 2 } = {}) {
+  return fixar(valor + stick * vel * dt, min, max);
+}

@@ -4,7 +4,7 @@ import { calcularViewports } from './cena/viewports.js';
 import { buildPersonagem } from './rig/personagem.js';
 import { listarBones } from './rig/hierarquia.js';
 import { resolverIK2Ossos } from './rig/ik.js';
-import { mapearJoystickParaMovimento } from './controle/joystick.js';
+import { mapearJoystickParaMovimento, fixar, proximoEixo, navegarLista, bordaSubida, moverNoEixo } from './controle/joystick.js';
 import { initJoystickVirtual } from './controle/virtual.js';
 import { lerGamepad } from './controle/gamepad.js';
 
@@ -29,7 +29,21 @@ const estado = {
   velocidade: 1.0,
   joy: { x: 0, y: 0, intensidade: 0 },
   tempo: 0,
+  modo: 'selecao', // gamepad: 'selecao' (R1 confirma) | 'mover' (R1 volta)
+  eixo: 'x', // L1 cicla x → y → z
+  navCd: 0,
 };
+const BONES = listarBones();
+const prevBotoes = { l1: false, r1: false };
+
+// Linha do eixo ativo (aparece ao mover o bone com o analogico direito).
+const COR_EIXO = { x: 0xff4444, y: 0x44ff44, z: 0x4488ff };
+const linhaEixo = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0.6, COR_EIXO.x, 0.12, 0.06);
+linhaEixo.visible = false;
+palco.scene.add(linhaEixo);
+const _posBone = new THREE.Vector3();
+const _quatBone = new THREE.Quaternion();
+const _dirEixo = new THREE.Vector3();
 
 const CHAINS = [
   { nome: 'braco_E', raiz: 'ombro_E', meio: 'braco_E', efetor: 'mao_E', alvo: 'alvo_mao_E' },
@@ -163,6 +177,7 @@ $('btn-painel').addEventListener('click', () => {
 
 function poseRepouso() {
   for (const n of listarBones()) bones[n].rotation.set(0, 0, 0);
+  bones.cintura.position.set(0, BASE_CINTURA_Y, 0);
   for (const c of CHAINS) controles[c.alvo].position.copy(BASE_ALVOS[c.alvo]);
   controles.polo_cotovelo_E.position.set(-0.55, 1.35, -0.35);
   controles.polo_cotovelo_D.position.set(0.55, 1.35, -0.35);
@@ -230,6 +245,42 @@ function passo(dt) {
   const gp = lerGamepad();
   $('gamepad-status').textContent = gp.conectado ? `Gamepad: ${gp.id.slice(0, 28)}` : 'Gamepad: nenhum (conecte e aperte um botao)';
   if (Math.hypot(jx, jy) < 0.05 && gp.conectado) { jx = gp.stick.x; jy = gp.stick.y; }
+
+  // Gamepad direito: R1 alterna selecao/mover, L1 cicla o eixo, stick move.
+  if (gp.conectado) {
+    if (bordaSubida(prevBotoes.l1, gp.l1)) estado.eixo = proximoEixo(estado.eixo);
+    if (bordaSubida(prevBotoes.r1, gp.r1)) estado.modo = estado.modo === 'selecao' ? 'mover' : 'selecao';
+    prevBotoes.l1 = gp.l1; prevBotoes.r1 = gp.r1;
+    estado.navCd -= dt;
+    const bone = bones[estado.junta];
+    if (estado.modo === 'selecao') {
+      linhaEixo.visible = false;
+      const dir = gp.stickR.y > 0.5 ? -1 : gp.stickR.y < -0.5 ? 1 : 0;
+      if (dir !== 0 && estado.navCd <= 0) {
+        estado.navCd = 0.25;
+        estado.junta = BONES[navegarLista(BONES.indexOf(estado.junta), dir, BONES.length)];
+        selJunta.value = estado.junta;
+        lerSlidersDaJunta();
+      }
+    } else {
+      const s = estado.eixo === 'y' ? gp.stickR.y : gp.stickR.x;
+      bone.position[estado.eixo] = moverNoEixo(bone.position[estado.eixo], s, { vel: 1.5, dt });
+      if (estado.junta === 'cintura') bone.position.y = fixar(bone.position.y, 0.2, 2);
+      linhaEixo.visible = Math.abs(s) > 0.05;
+      if (linhaEixo.visible) {
+        bone.getWorldPosition(_posBone);
+        bone.getWorldQuaternion(_quatBone);
+        _dirEixo.set(0, 0, 0); _dirEixo[estado.eixo] = 1;
+        linhaEixo.position.copy(_posBone);
+        linhaEixo.setDirection(_dirEixo.applyQuaternion(_quatBone));
+        linhaEixo.setColor(new THREE.Color(COR_EIXO[estado.eixo]));
+      }
+    }
+    $('gpad-modo').textContent = `gamepad: ${estado.modo} · ${estado.junta} · eixo ${estado.eixo.toUpperCase()}`;
+  } else {
+    linhaEixo.visible = false;
+    $('gpad-modo').textContent = 'gamepad: — (R1 confirma · L1 eixo)';
+  }
   if (teclas.has('w')) jy += 1; if (teclas.has('s')) jy -= 1;
   if (teclas.has('a')) jx -= 1; if (teclas.has('d')) jx += 1;
   jx = Math.max(-1, Math.min(1, jx)); jy = Math.max(-1, Math.min(1, jy));
