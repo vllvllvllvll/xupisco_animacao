@@ -1,5 +1,17 @@
 # Xupisco Animação
 
+Web app Three.js: humanoide rigado, painel de 3 câmeras
+(frente / cima / lateral), joystick virtual na tela + Gamepad API real.
+
+## Modelo
+
+- **Xbot** (`public/modelo-xbot.glb`, do repo three.js): humanoide rigado
+  Mixamo, 67 joints, pesos verificados (0 orfãos). O retarget copia a
+  rotacao-relativa-ao-repouso dos nossos bones PT-BR p/ os dele todo frame —
+  IK, controladores e timeline continuam iguais. Botão "modelo" alterna
+  entre Xbot e as primitivas de fallback.
+- **Backup:** branch `backup-primitivas` tem a versão só com primitivas.
+
 Web app Three.js: personagem rigado com nomenclatura em português, painel de 3 câmeras
 (frente / cima / lateral), joystick virtual na tela + Gamepad API real.
 

@@ -8,12 +8,15 @@ import { fixar, proximoEixo, navegarLista, bordaSubida, moverNoEixo, fixarFaixa 
 import { initJoystickVirtual } from './controle/virtual.js';
 import { lerGamepad } from './controle/gamepad.js';
 import { extrairPose, aplicarPose, amostrar, quadroAtual } from './anim/timeline.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { criarRetarget } from './rig/retarget.js';
+import { verificarENormalizarPesos } from './rig/pesos.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('gl');
 
 const palco = initPalco(canvas);
-const { grupo, bones, controles } = buildPersonagem();
+const { grupo, bones, meshes, controles } = buildPersonagem();
 palco.scene.add(grupo);
 palco.scene.add(buildHelper());
 function buildHelper() {
@@ -21,6 +24,65 @@ function buildHelper() {
   h.material.color.set(0xff383c);
   return h;
 }
+
+// ---------- Xbot (humanoide rigado do repo three.js) + fallback primitivas ----------
+let xbotRaiz = null, retarget = null, usarXbot = false;
+
+function setupXbot(gltf) {
+  xbotRaiz = gltf.scene;
+  palco.scene.add(xbotRaiz);
+  // Auto-escala: iguala a altura do Xbot a do nosso rig (arquivo ja traz sua escala).
+  xbotRaiz.updateMatrixWorld(true);
+  const tamX = new THREE.Box3().setFromObject(xbotRaiz).getSize(new THREE.Vector3());
+  const tamN = new THREE.Box3().setFromObject(grupo).getSize(new THREE.Vector3());
+  if (tamX.y > 1e-6 && tamN.y > 1e-6) xbotRaiz.scale.setScalar(tamN.y / tamX.y);
+  // Pesos: verifica e normaliza (orfaos sao reportados, sem inventar deformacao).
+  let total = 0, orfaos = 0, norm = 0;
+  xbotRaiz.traverse((o) => {
+    if (o.isSkinnedMesh) {
+      const r = verificarENormalizarPesos({
+        count: o.geometry.attributes.position.count,
+        skinIndex: o.geometry.attributes.skinIndex,
+        skinWeight: o.geometry.attributes.skinWeight,
+      });
+      total += r.total; orfaos += r.orfaos; norm += r.normalizados;
+    }
+  });
+  // Captura o repouso com nosso rig zerado (independe do momento do load).
+  const salvo = {};
+  for (const n of listarBones()) {
+    salvo[n] = { p: bones[n].position.clone(), q: bones[n].quaternion.clone() };
+    bones[n].quaternion.identity();
+  }
+  grupo.updateMatrixWorld(true);
+  xbotRaiz.updateMatrixWorld(true);
+  retarget = criarRetarget(bones, xbotRaiz);
+  for (const n of Object.keys(salvo)) {
+    bones[n].position.copy(salvo[n].p);
+    bones[n].quaternion.copy(salvo[n].q);
+  }
+  grupo.updateMatrixWorld(true);
+  usarXbot = true;
+  aplicarModelo();
+  $('msg').textContent = `Xbot ok · ${total} verts · ${orfaos} orfaos · ${norm} normalizados.`;
+}
+
+function aplicarModelo() {
+  const comXbot = usarXbot && xbotRaiz;
+  for (const m of Object.values(meshes)) m.visible = !comXbot;
+  if (xbotRaiz) xbotRaiz.visible = !!comXbot;
+  $('btn-modelo').textContent = comXbot ? 'modelo: xbot' : 'modelo: primitivas';
+}
+
+new GLTFLoader().load('/modelo-xbot.glb', setupXbot, undefined, () => {
+  $('msg').textContent = 'Modelo Xbot indisponivel — primitivas ativas.';
+});
+
+$('btn-modelo').addEventListener('click', () => {
+  if (!xbotRaiz) { $('msg').textContent = 'Xbot ainda carregando ou indisponivel.'; return; }
+  usarXbot = !usarXbot;
+  aplicarModelo();
+});
 
 // ---------- Estado ----------
 const estado = {
@@ -294,7 +356,8 @@ initJoystickVirtual($('joy-base'), $('joy-pino'), (j) => { estado.joy = j; }, 'x
 initJoystickVirtual($('joy2-base'), $('joy2-pino'), (j) => { estado.joyR = j; }, 'y');
 
 // Hook p/ teste E2E (le estado/bones sem expor no UI).
-window.__xup = { estado, bones, controles, CONTROLADORES: CONTROLADORES_MOVEIS };
+window.__xup = { estado, bones, controles, CONTROLADORES: CONTROLADORES_MOVEIS, palco,
+  xbot: () => ({ raiz: xbotRaiz, retarget: !!retarget, usando: usarXbot }) };
 
 // ---------- Loop ----------
 const relogio = new THREE.Clock();
@@ -411,6 +474,8 @@ function passo(dt) {
   grupo.updateMatrixWorld(true);
   if (!tl.tocando) for (const c of CHAINS) if (estado.ik[c.nome]) aplicarIK(c.nome);
   grupo.updateMatrixWorld(true);
+  // Xbot segue nosso rig (controladores continuam nos nossos bones).
+  if (retarget && usarXbot) retarget.atualizar();
 }
 
 function quadro() {
