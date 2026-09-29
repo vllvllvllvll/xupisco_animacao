@@ -1,16 +1,18 @@
-import { limitarVetor } from './joystick.js';
+import { limitarVetor, travarEixo } from './joystick.js';
 
 /**
  * Joystick virtual (toque + mouse). Desenha base + pino via divs.
  * onMove({x, y, intensidade}) com x,y em -1..1 (y+ = cima da tela).
+ * trava: 'x' = pino so na horizontal, 'y' = so na vertical (Figma).
  */
-export function initJoystickVirtual(baseEl, pinoEl, onMove) {
+export function initJoystickVirtual(baseEl, pinoEl, onMove, trava = null) {
   const RAIO = 48;
   let ativo = false;
   let centro = { x: 0, y: 0 };
 
   function emitir(dx, dy) {
-    const l = limitarVetor(dx, dy, RAIO);
+    const [tx, ty] = travarEixo(dx, dy, trava);
+    const l = limitarVetor(tx, ty, RAIO);
     pinoEl.style.transform = `translate(${l.x}px, ${l.y}px)`;
     onMove({ x: l.x / RAIO, y: -l.y / RAIO, intensidade: l.intensidade });
   }

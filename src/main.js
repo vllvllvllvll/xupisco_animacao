@@ -290,8 +290,8 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', (e) => teclas.delete(e.key.toLowerCase()));
 
 // Joysticks na tela: esquerdo = cintura, direito = bone (espelha o gamepad).
-initJoystickVirtual($('joy-base'), $('joy-pino'), (j) => { estado.joy = j; });
-initJoystickVirtual($('joy2-base'), $('joy2-pino'), (j) => { estado.joyR = j; });
+initJoystickVirtual($('joy-base'), $('joy-pino'), (j) => { estado.joy = j; }, 'x');
+initJoystickVirtual($('joy2-base'), $('joy2-pino'), (j) => { estado.joyR = j; }, 'y');
 
 // Hook p/ teste E2E (le estado/bones sem expor no UI).
 window.__xup = { estado, bones, controles, CONTROLADORES: CONTROLADORES_MOVEIS };
@@ -305,10 +305,10 @@ function passo(dt) {
 
   // Entrada ESQUERDA: move o controlador selecionado no eixo ativo.
   // Entrada DIREITA: so seleciona (navega a lista no modo selecao).
-  let jx = estado.joy.x, jy = estado.joy.y;
+  let jx = estado.joy.x, jy = 0; // esquerdo: so horizontal (Figma)
   const gp = lerGamepad();
   $('gamepad-status').textContent = gp.conectado ? `Gamepad: ${gp.id.slice(0, 28)}` : 'Gamepad: nenhum (conecte e aperte um botao)';
-  if (Math.hypot(jx, jy) < 0.05 && gp.conectado) { jx = gp.stick.x; jy = gp.stick.y; }
+  if (Math.abs(jx) < 0.05 && gp.conectado) jx = gp.stick.x;
   jx = Math.max(-1, Math.min(1, jx)); jy = Math.max(-1, Math.min(1, jy));
   const cin = bones.cintura;
 
@@ -332,7 +332,7 @@ function passo(dt) {
   const ctl = resolverControlador(estado.controlador);
   let s = 0;
   if (estado.modo === 'mover') {
-    s = estado.eixo === 'y' ? jy : jx;
+    s = jx; // horizontal empurra o eixo ativo, qualquer que seja
     ctl.position[estado.eixo] = moverNoEixo(ctl.position[estado.eixo], s, { vel: 1.5, dt });
     if (estado.controlador === 'ctrl_cintura') {
       ctl.position.x = fixar(ctl.position.x, -4, 4);

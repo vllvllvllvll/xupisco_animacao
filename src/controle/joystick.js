@@ -39,6 +39,12 @@ export function mapearJoystickParaMovimento(jx, jy, { velocidade = 2.0, giro = 2
   };
 }
 
+/** Trava o analogico num eixo (Figma): 'x' = so horizontal, 'y' = so vertical. */
+export function travarEixo(x, y, eixo) {
+  if (eixo === 'x') return [x, 0];
+  if (eixo === 'y') return [0, y];
+  return [x, y];
+}
 /** Normaliza leitura bruta de gamepad (eixos podem passar de 1). */
 export function normalizarEixoGamepad(n) {
   if (!Number.isFinite(n)) return 0;

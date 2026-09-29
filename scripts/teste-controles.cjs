@@ -78,8 +78,8 @@ const ok = (cond, rotulo) => {
   const pressR1 = async () => { await botoes(false, true); await sleep(200); await botoes(false, false); await sleep(300); };
   const pressL1 = async () => { await botoes(true, false); await sleep(200); await botoes(false, false); await sleep(300); };
   const passoNav = async () => { await setPad({ ax: [0, 0, 0, 1] }); await sleep(150); await setPad({ ax: [0, 0, 0, 0] }); await sleep(400); };
-  const empurraEsq = async (eixo) => { // stick ESQ move o controlador
-    if (eixo === 'y') await setPad({ ax: [0, -1, 0, 0] }); else await setPad({ ax: [1, 0, 0, 0] });
+  const empurraEsq = async () => { // stick ESQ: so horizontal, move o eixo ativo
+    await setPad({ ax: [1, 0, 0, 0] });
     await sleep(1000);
     await setPad({ ax: [0, 0, 0, 0] }); await sleep(250);
   };
@@ -105,7 +105,7 @@ const ok = (cond, rotulo) => {
     ok((await modo()).includes('mover'), `  R1 confirma ${atual} → mover`);
     for (const [eixo] of [['x'], ['y'], ['z']]) {
       const antes = (await pos(atual))[['x', 'y', 'z'].indexOf(eixo)];
-      await empurraEsq(eixo);
+      await empurraEsq();
       const depois = (await pos(atual))[['x', 'y', 'z'].indexOf(eixo)];
       ok(Math.abs(depois - antes) > 0.25, `  move ${atual}.${eixo}: ${antes.toFixed(2)} → ${depois.toFixed(2)}`);
       await pressL1();

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { limitarVetor, aplicarZonaMorta, mapearJoystickParaMovimento, normalizarEixoGamepad } from '../src/controle/joystick.js';
+import { limitarVetor, aplicarZonaMorta, mapearJoystickParaMovimento, normalizarEixoGamepad, travarEixo } from '../src/controle/joystick.js';
 
 describe('joystick', () => {
   it('limita ao raio com intensidade 1 na borda', () => {
@@ -39,5 +39,11 @@ describe('joystick', () => {
     assert.equal(normalizarEixoGamepad(NaN), 0);
     assert.equal(normalizarEixoGamepad(5), 1);
     assert.equal(normalizarEixoGamepad(-5), -1);
+  });
+
+  it('trava do analogico (Figma): esq so-x, dir so-y', () => {
+    assert.deepEqual(travarEixo(0.7, 0.9, 'x'), [0.7, 0]);
+    assert.deepEqual(travarEixo(0.7, 0.9, 'y'), [0, 0.9]);
+    assert.deepEqual(travarEixo(0.7, 0.9, null), [0.7, 0.9]);
   });
 });
