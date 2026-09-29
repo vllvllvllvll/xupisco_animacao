@@ -45,6 +45,22 @@ export const CONTROLADORES_MOVEIS = [
 
 /** Cores dos eixos padrao Blender: X vermelho, Y verde, Z azul. */
 export const COR_EIXO = { x: 0xff383c, y: 0x44dd44, z: 0x4488ff };
+
+/**
+ * Limit translation estilo Maya: [dmin, dmax] por eixo, relativos a pose base.
+ * Pes nao afundam (piso absoluto aplicado no codigo).
+ */
+export const LIMITES_CONTROLE = {
+  alvo_mao_E: { x: [-0.9, 0.9], y: [-0.9, 0.9], z: [-0.9, 0.9] },
+  alvo_mao_D: { x: [-0.9, 0.9], y: [-0.9, 0.9], z: [-0.9, 0.9] },
+  alvo_pe_E: { x: [-0.6, 0.6], y: [-0.15, 0.9], z: [-0.9, 0.9] },
+  alvo_pe_D: { x: [-0.6, 0.6], y: [-0.15, 0.9], z: [-0.9, 0.9] },
+  polo_cotovelo_E: { x: [-1, 1], y: [-1, 1], z: [-1, 1] },
+  polo_cotovelo_D: { x: [-1, 1], y: [-1, 1], z: [-1, 1] },
+  polo_joelho_E: { x: [-1, 1], y: [-1, 1], z: [-1, 1] },
+  polo_joelho_D: { x: [-1, 1], y: [-1, 1], z: [-1, 1] },
+};
+export const PISO_PES = 0.02;
 export const CONTROLADORES = [
   'ctrl_cintura',
   'ctrl_barriga',

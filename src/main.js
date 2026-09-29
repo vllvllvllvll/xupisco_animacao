@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { initPalco } from './cena/palco.js';
 import { calcularViewports } from './cena/viewports.js';
 import { buildPersonagem } from './rig/personagem.js';
-import { listarBones, CONTROLADORES_MOVEIS, COR_EIXO } from './rig/hierarquia.js';
+import { listarBones, CONTROLADORES_MOVEIS, COR_EIXO, LIMITES_CONTROLE, PISO_PES } from './rig/hierarquia.js';
 import { resolverIK2Ossos } from './rig/ik.js';
-import { fixar, proximoEixo, navegarLista, bordaSubida, moverNoEixo } from './controle/joystick.js';
+import { fixar, proximoEixo, navegarLista, bordaSubida, moverNoEixo, fixarFaixa } from './controle/joystick.js';
 import { initJoystickVirtual } from './controle/virtual.js';
 import { lerGamepad } from './controle/gamepad.js';
 import { extrairPose, aplicarPose, amostrar, quadroAtual } from './anim/timeline.js';
@@ -362,6 +362,16 @@ function passo(dt) {
   if (teclas.has('arrowup')) ctl.position.y += vel;
   if (teclas.has('arrowdown')) ctl.position.y -= vel;
 
+  // Limit translation (Maya): controladores so vao ate o limite.
+  for (const n of CONTROLADORES_MOVEIS) {
+    if (n === 'ctrl_cintura' || !LIMITES_CONTROLE[n]) continue;
+    const o = controles[n], b = BASE_CONTROLES[n], L = LIMITES_CONTROLE[n];
+    o.position.x = fixarFaixa(o.position.x, b.x, ...L.x);
+    o.position.y = fixarFaixa(o.position.y, b.y, ...L.y);
+    o.position.z = fixarFaixa(o.position.z, b.z, ...L.z);
+    if (n.startsWith('alvo_pe_')) o.position.y = Math.max(o.position.y, PISO_PES);
+  }
+
   // Ciclo de marcha procedural (pausa no modo mover p/ nao brigar com o usuario).
   if (estado.animar && !tl.tocando && estado.modo !== 'mover') {
     const t = estado.tempo * 5;
@@ -417,4 +427,10 @@ function quadro() {
 poseRepouso();
 selecionarControlador(estado.controlador);
 lerSlidersDoAlvo();
+
+// Referencia do limit translation (pose base canonica).
+const BASE_CONTROLES = {};
+for (const n of CONTROLADORES_MOVEIS) {
+  BASE_CONTROLES[n] = (n === 'ctrl_cintura' ? bones.cintura : controles[n]).position.clone();
+}
 quadro();

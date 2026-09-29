@@ -70,3 +70,8 @@ export function bordaSubida(antes, agora) {
 export function moverNoEixo(valor, stick, { vel = 1.5, dt = 1 / 60, min = -2, max = 2 } = {}) {
   return fixar(valor + stick * vel * dt, min, max);
 }
+
+/** Limit translation (Maya): prende o canal na faixa [base+dmin, base+dmax]. */
+export function fixarFaixa(valor, base, dmin, dmax) {
+  return fixar(valor, base + dmin, base + dmax);
+}
