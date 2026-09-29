@@ -64,7 +64,8 @@ body { display: flex; flex-direction: column; }
   padding: 2px 4px; margin: 0; width: 100%;
 }
 #painel #controladores-lista button { color: #ff383c; }
-#controladores-lista button.atual { background: #2a1414; }
+#controladores-lista button:hover { background: #d9d9d9; }
+#controladores-lista button.atual { background: #d9d9d9; font-weight: 700; }
 #painel h3 { margin: 10px 0 6px; font-size: 12px; text-transform: uppercase; color: var(--mut); }
 #painel select, #painel button { width: 100%; margin: 3px 0; padding: 6px; border-radius: 8px; border: 1px solid var(--borda); background: #d9d9d9; color: var(--texto); }
 #painel button { cursor: pointer; }
